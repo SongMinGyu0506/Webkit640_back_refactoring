@@ -1,0 +1,38 @@
+package com.webkit640.backend.entity;
+
+import com.sun.istack.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Entity(name = "tb_trainee")
+public class Trainee extends DateAudit {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @NotNull
+    private String cardinal;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn
+    private Applicant applicant;
+
+    @OneToMany(mappedBy = "trainee", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Attend> attends = new ArrayList<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    private Employment employment;
+
+    @OneToMany(mappedBy = "trainee", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Counsel> counsels = new ArrayList<>();
+}
