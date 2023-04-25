@@ -1,4 +1,4 @@
-package com.webkit640.backend.config;
+package com.webkit640.backend.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.httpBasic().disable().build();
+        return http
+                .headers().frameOptions().disable().and()
+                .authorizeRequests()
+                .antMatchers("/**").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .csrf()
+                .ignoringAntMatchers("/h2-console/**").disable()
+                .httpBasic().disable().build();
     }
 }
