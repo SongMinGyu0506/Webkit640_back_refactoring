@@ -27,7 +27,7 @@ public class MemberController {
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SignupDtoRequest signupDto) {
         Member member = memberService.create(SignupDtoRequest.dtoToEntity(signupDto));
-        return member != null ? ResponseEntity.ok().body("test OK") : ResponseEntity.badRequest().body("test Failed");
+        return member != null ? ResponseEntity.ok().body(SignupDtoRequest.signupDtoResponse(member)) : ResponseEntity.badRequest().body("test Failed");
     }
 
     @PostMapping("/login")
