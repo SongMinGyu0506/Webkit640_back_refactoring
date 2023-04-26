@@ -29,4 +29,10 @@ public class SignupDtoRequest {
                 .password(dto.getPassword())
                 .build();
     }
+    public static SignupDtoRequest signupDtoResponse(Member member) {
+        return SignupDtoRequest.builder()
+                .email(member.getEmail())
+                .memberType(member.getMemberType())
+                .build();
+    }
 }
