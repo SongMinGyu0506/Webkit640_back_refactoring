@@ -34,16 +34,15 @@ public class MemberController {
     public ResponseEntity<?> signUp(@RequestBody SignupDtoRequest signupDto) {
         Member member = memberService.create(SignupDtoRequest.dtoToEntity(signupDto));
         return member != null ?
-                ResponseEntity.ok().body(ResponseWrapper.addObject(SignupDtoRequest.signupDtoResponse(member))) :
-                ResponseEntity.badRequest().body("failed");
+                ResponseEntity.ok().body(ResponseWrapper.addObject(SignupDtoRequest.signupDtoResponse(member),HttpStatus.OK)) :
+                ResponseEntity.badRequest().body(ResponseWrapper.addObject("Already Used Email", HttpStatus.BAD_REQUEST));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDtoRequest loginDto) {
         HashMap<String,Object> data = memberService.getByCredentials(loginDto.getEmail(), loginDto.getPassword());
         return data != null ? ResponseEntity.ok().body(
-                LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token"))
-        ) :
+                LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token"))):
                 ResponseEntity.badRequest().body("login Failed");
     }
 

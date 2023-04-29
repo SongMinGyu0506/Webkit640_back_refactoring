@@ -29,11 +29,11 @@ public class ResponseWrapper<T> {
 //                .build();
 //    }
 
-    public static <T> ResponseWrapper addObject(T obj) {
+    public static <T> ResponseWrapper addObject(T obj,HttpStatus status) {
         List<T> dataList = new ArrayList<>();
         dataList.add(obj);
         return ResponseWrapper.<T>builder()
-                .status(HttpStatus.OK)
+                .status(status)
                 .data(dataList)
                 .time(LocalDate.now())
                 .build();
