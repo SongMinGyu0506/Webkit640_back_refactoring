@@ -4,6 +4,7 @@ import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
 import com.webkit640.backend.dto.response.AllMemberDtoResponse;
 import com.webkit640.backend.dto.response.LoginDtoResponse;
+import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
 import com.webkit640.backend.service.MemberService;
@@ -55,26 +56,21 @@ class MemberControllerTest {
                 .memberBelong("Student")
                 .memberType("ADMIN")
                 .build();
-
         String url = "http://localhost:" + port + "/auth/sign-up";
-        ResponseEntity<SignupDtoRequest> response = restTemplate.postForEntity(url,dto,SignupDtoRequest.class);
-        SignupDtoRequest result = response.getBody();
+
+        ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(url,dto,ResponseWrapper.class);
+        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert result != null;
-        assertThat(result.getEmail()).isEqualTo("test@test.com");
-        assertThat(result.getMemberType()).isEqualTo("ADMIN");
+        assertThat(lhm.get("name")).isEqualTo("test_name");
+        assertThat(lhm.get("email")).isEqualTo("test@test.com");
+        assertThat(lhm.get("memberBelong")).isEqualTo("Student");
+        assertThat(lhm.get("memberType")).isEqualTo("ADMIN");
     }
     
     @Test
     @DisplayName("로컬 로그인 테스트")
     void login() {
-        String name = "test_name";
-        String email = "test@test.com";
-        String password = "1234";
-        String memberBelong = "Student";
-        String memberType = "ADMIN";
-
         SignupDtoRequest dto = SignupDtoRequest.builder()
                 .name("test_name")
                 .email("test@test.com")
@@ -84,33 +80,27 @@ class MemberControllerTest {
                 .build();
 
         String url = "http://localhost:" + port + "/auth/sign-up";
-        ResponseEntity<SignupDtoRequest> response = restTemplate.postForEntity(url,dto,SignupDtoRequest.class);
+        ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(url,dto,ResponseWrapper.class);
+        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         LoginDtoRequest dtos = LoginDtoRequest.builder()
-                .email("test@test.com")
+                .email(lhm.get("email").toString())
                 .password("1234")
                 .build();
         String urls = "http://localhost:"+port+"/auth/login";
-        ResponseEntity<LoginDtoResponse> responses = restTemplate.postForEntity(urls,dtos,LoginDtoResponse.class);
-        LoginDtoResponse body = responses.getBody();
+        response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
+        lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert body != null;
-        assertThat(body.getEmail()).isEqualTo("test@test.com");
-        assertThat(body.getMemberBelong()).isEqualTo("Student");
-        assertThat(body.getMemberType()).isEqualTo("ADMIN");
-        System.out.println(body.getToken());
+        assertThat(lhm.get("email")).isEqualTo("test@test.com");
+        assertThat(lhm.get("memberBelong")).isEqualTo("Student");
+        assertThat(lhm.get("memberType")).isEqualTo("ADMIN");
+        System.out.println(lhm.get("token"));
     }
 
     @Test
     @DisplayName("회원 목록 열람")
     void viewMembers() {
-        String name = "test_name";
-        String email = "test@test.com";
-        String password = "1234";
-        String memberBelong = "Student";
-        String memberType = "ADMIN";
-
         SignupDtoRequest dto = SignupDtoRequest.builder()
                 .name("test_name")
                 .email("test@test.com")
@@ -120,28 +110,31 @@ class MemberControllerTest {
                 .build();
 
         String url = "http://localhost:" + port + "/auth/sign-up";
-        ResponseEntity<SignupDtoRequest> response = restTemplate.postForEntity(url,dto,SignupDtoRequest.class);
+        ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(url,dto,ResponseWrapper.class);
+        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         LoginDtoRequest dtos = LoginDtoRequest.builder()
-                .email("test@test.com")
+                .email(lhm.get("email").toString())
                 .password("1234")
                 .build();
         String urls = "http://localhost:"+port+"/auth/login";
-        ResponseEntity<LoginDtoResponse> responses = restTemplate.postForEntity(urls,dtos,LoginDtoResponse.class);
-        LoginDtoResponse body = responses.getBody();
+        response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
+        lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization","Bearer "+body.getToken());
+        headers.set("Authorization","Bearer "+lhm.get("token"));
         HttpEntity request = new HttpEntity(headers);
         String requestUrl = "http://localhost:"+port+"/auth/view-members";
-        ResponseEntity<List> responseFinal = restTemplate.exchange(requestUrl,HttpMethod.GET,request,List.class);
+        response = restTemplate.exchange(requestUrl,HttpMethod.GET,request,ResponseWrapper.class);
+        List<LinkedHashMap<String,Object>> list = (List<LinkedHashMap<String, Object>>) response.getBody().getData().get(0);
+        System.out.println(list.get(0));
 
-        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) responseFinal.getBody().get(0);
-        assertThat(lhm.get("email").toString()).isEqualTo("test@test.com");
-        assertThat(lhm.get("memberBelong").toString()).isEqualTo("Student");
-        assertThat(lhm.get("memberType").toString()).isEqualTo("ADMIN");
-        assertThat(lhm.get("name").toString()).isEqualTo("test_name");
-        assertThat(lhm.get("admin")).isEqualTo(false);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(list.get(0).get("email")).isEqualTo("test@test.com");
+        assertThat(list.get(0).get("memberBelong")).isEqualTo("Student");
+        assertThat(list.get(0).get("memberType")).isEqualTo("ADMIN");
+        assertThat(list.get(0).get("name")).isEqualTo("test_name");
+        assertThat(list.get(0).get("admin")).isEqualTo(false);
     }
 
 }

@@ -32,6 +32,8 @@ public class SignupDtoRequest {
         return SignupDtoRequest.builder()
                 .email(member.getEmail())
                 .memberType(member.getMemberType())
+                .name(member.getName())
+                .memberBelong(member.getMemberBelong())
                 .build();
     }
 }

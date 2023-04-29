@@ -42,12 +42,16 @@ public class MemberController {
     public ResponseEntity<?> login(@RequestBody LoginDtoRequest loginDto) {
         HashMap<String,Object> data = memberService.getByCredentials(loginDto.getEmail(), loginDto.getPassword());
         return data != null ? ResponseEntity.ok().body(
-                LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token"))):
-                ResponseEntity.badRequest().body("login Failed");
+                ResponseWrapper.addObject(LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token")),
+                        HttpStatus.OK)
+        ):
+                ResponseEntity.badRequest().body(ResponseWrapper.addObject("Login Failed", HttpStatus.BAD_REQUEST));
     }
 
     @GetMapping("/view-members")
     public ResponseEntity<?> viewMembers(@AuthenticationPrincipal int id) {
-        return ResponseEntity.ok().body(AllMemberDtoResponse.entityToDtos(memberService.readAll()));
+        return ResponseEntity.ok().body(ResponseWrapper.addObject(
+                AllMemberDtoResponse.entityToDtos(memberService.readAll()),HttpStatus.OK
+        ));
     }
 }
