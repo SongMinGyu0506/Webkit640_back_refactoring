@@ -1,14 +1,13 @@
 package com.webkit640.backend.dto.request;
 import com.webkit640.backend.entity.Member;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Getter
+@Setter
 public class SignupDtoRequest {
     private String email;
     private String password;
