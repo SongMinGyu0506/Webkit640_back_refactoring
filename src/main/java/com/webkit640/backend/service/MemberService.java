@@ -16,4 +16,5 @@ public interface MemberService {
     Member update(Member member);
     void delete(int id);
     HashMap<String,Object> getByCredentials(String email, String password);
+    String getEmailById(int id);
 }

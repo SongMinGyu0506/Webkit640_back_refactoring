@@ -58,4 +58,9 @@ public class MemberServiceImpl implements MemberService{
             return null;
         }
     }
+
+    @Override
+    public String getEmailById(int id) {
+        return memberRepository.findById(id).getEmail();
+    }
 }
