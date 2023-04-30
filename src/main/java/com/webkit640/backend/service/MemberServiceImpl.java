@@ -1,5 +1,9 @@
 package com.webkit640.backend.service;
 
+import com.webkit640.backend.config.exception.AlreadyExistsException;
+import com.webkit640.backend.config.exception.LoginFailedException;
+import com.webkit640.backend.config.exception.NoAdminException;
+import com.webkit640.backend.config.exception.NotFoundDataException;
 import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
@@ -25,7 +29,10 @@ public class MemberServiceImpl implements MemberService{
 
     @Override
     public Member create(Member member) {
-        return !memberRepository.existsMemberByEmail(member.getEmail()) ? memberRepository.save(member) : null;
+        if (!memberRepository.existsMemberByEmail(member.getEmail())) {
+            return memberRepository.save(member);
+        }
+        throw new AlreadyExistsException(String.format("[%s] is already used email",member.getEmail()));
     }
 
     @Override
@@ -57,7 +64,7 @@ public class MemberServiceImpl implements MemberService{
             returnData.put("member",member);
             return returnData;
         } else {
-            return null;
+            throw new LoginFailedException(String.format("[%s] Login Failed", email));
         }
     }
 
@@ -67,16 +74,15 @@ public class MemberServiceImpl implements MemberService{
     }
 
     @Override
-    public int changeAdmin(String email,int id) {
+    public void changeAdmin(String email,int id) {
         if(!memberRepository.findById(id).isAdmin()) {
-            return -1;
+            throw new NoAdminException("Not Admin User");
         }
         Member member = memberRepository.findByEmail(email);
         if (member == null) {
-            return 1;
+            throw new NotFoundDataException("Not Found member");
         }
         member.setAdmin(!member.isAdmin());
         memberRepository.save(member);
-        return 0;
     }
 }

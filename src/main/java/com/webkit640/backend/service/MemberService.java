@@ -17,5 +17,6 @@ public interface MemberService {
     void delete(int id);
     HashMap<String,Object> getByCredentials(String email, String password);
     String getEmailById(int id);
-    int changeAdmin(String email,int id);
+    void changeAdmin(String email,int id);
+//    Member getMember(int id);
 }

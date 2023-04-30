@@ -1,6 +1,8 @@
 package com.webkit640.backend.controller;
 
 
+import com.webkit640.backend.config.exception.AlreadyExistsException;
+import com.webkit640.backend.config.exception.LoginFailedException;
 import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
 import com.webkit640.backend.dto.response.AllMemberDto;
@@ -30,24 +32,14 @@ public class MemberController {
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SignupDtoRequest signupDto) {
         Member member = memberService.create(SignupDtoRequest.dtoToEntity(signupDto));
-        return member != null ?
-                ResponseEntity.created(
-                        ServletUriComponentsBuilder.fromCurrentRequest()
-                                .path("/{id}")
-                                .buildAndExpand(member.getId())
-                                .toUri()
-                ).build():
-                new ResponseEntity<>(ResponseWrapper.addObject("Already Used Email",HttpStatus.CONFLICT),HttpStatus.valueOf(409));
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDtoRequest loginDto) {
         HashMap<String,Object> data = memberService.getByCredentials(loginDto.getEmail(), loginDto.getPassword());
-        return data != null ? ResponseEntity.ok().body(
-                ResponseWrapper.addObject(LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token")),
-                        HttpStatus.OK)
-        ):
-                ResponseEntity.badRequest().body(ResponseWrapper.addObject("Login Failed", HttpStatus.BAD_REQUEST));
+        return ResponseEntity.ok().body(
+                ResponseWrapper.addObject(LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token")), HttpStatus.OK));
     }
 
     @GetMapping("/view-members")
@@ -56,14 +48,10 @@ public class MemberController {
                 AllMemberDto.entityToDtos(memberService.readAll()),HttpStatus.OK
         ));
     }
+
     @PatchMapping("/admin-change")
     public ResponseEntity<?> changeAdmin(@AuthenticationPrincipal int id, @RequestBody AllMemberDto dto) {
-        int code = memberService.changeAdmin(dto.getEmail(),id);
-        return code == 0 ?
-                ResponseEntity.noContent().build() :
-                code == 1 ?
-                new ResponseEntity<>(ResponseWrapper.addObject("That user does not exist.",HttpStatus.BAD_REQUEST),HttpStatus.BAD_REQUEST):
-                        new ResponseEntity<>(ResponseWrapper.addObject("You do not have permission to use that function.",HttpStatus.FORBIDDEN),HttpStatus.FORBIDDEN);
-
+        memberService.changeAdmin(dto.getEmail(),id);
+        return ResponseEntity.noContent().build();
     }
 }
