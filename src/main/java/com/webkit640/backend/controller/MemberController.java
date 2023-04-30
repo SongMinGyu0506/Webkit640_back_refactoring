@@ -3,7 +3,7 @@ package com.webkit640.backend.controller;
 
 import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
-import com.webkit640.backend.dto.response.AllMemberDtoResponse;
+import com.webkit640.backend.dto.response.AllMemberDto;
 import com.webkit640.backend.dto.response.LoginDtoResponse;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Member;
@@ -12,12 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -34,8 +31,13 @@ public class MemberController {
     public ResponseEntity<?> signUp(@RequestBody SignupDtoRequest signupDto) {
         Member member = memberService.create(SignupDtoRequest.dtoToEntity(signupDto));
         return member != null ?
-                ResponseEntity.ok().body(ResponseWrapper.addObject(SignupDtoRequest.signupDtoResponse(member),HttpStatus.OK)) :
-                ResponseEntity.badRequest().body(ResponseWrapper.addObject("Already Used Email", HttpStatus.BAD_REQUEST));
+                ResponseEntity.created(
+                        ServletUriComponentsBuilder.fromCurrentRequest()
+                                .path("/{id}")
+                                .buildAndExpand(member.getId())
+                                .toUri()
+                ).build():
+                new ResponseEntity<>(ResponseWrapper.addObject("Already Used Email",HttpStatus.CONFLICT),HttpStatus.valueOf(409));
     }
 
     @PostMapping("/login")
@@ -51,7 +53,17 @@ public class MemberController {
     @GetMapping("/view-members")
     public ResponseEntity<?> viewMembers(@AuthenticationPrincipal int id) {
         return ResponseEntity.ok().body(ResponseWrapper.addObject(
-                AllMemberDtoResponse.entityToDtos(memberService.readAll()),HttpStatus.OK
+                AllMemberDto.entityToDtos(memberService.readAll()),HttpStatus.OK
         ));
+    }
+    @PatchMapping("/admin-change")
+    public ResponseEntity<?> changeAdmin(@AuthenticationPrincipal int id, @RequestBody AllMemberDto dto) {
+        int code = memberService.changeAdmin(dto.getEmail(),id);
+        return code == 0 ?
+                ResponseEntity.noContent().build() :
+                code == 1 ?
+                new ResponseEntity<>(ResponseWrapper.addObject("That user does not exist.",HttpStatus.BAD_REQUEST),HttpStatus.BAD_REQUEST):
+                        new ResponseEntity<>(ResponseWrapper.addObject("You do not have permission to use that function.",HttpStatus.FORBIDDEN),HttpStatus.FORBIDDEN);
+
     }
 }

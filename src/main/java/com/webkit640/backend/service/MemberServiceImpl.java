@@ -3,6 +3,7 @@ package com.webkit640.backend.service;
 import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
+@Slf4j
 public class MemberServiceImpl implements MemberService{
 
     private final MemberRepository memberRepository;
@@ -62,5 +64,19 @@ public class MemberServiceImpl implements MemberService{
     @Override
     public String getEmailById(int id) {
         return memberRepository.findById(id).getEmail();
+    }
+
+    @Override
+    public int changeAdmin(String email,int id) {
+        if(!memberRepository.findById(id).isAdmin()) {
+            return -1;
+        }
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            return 1;
+        }
+        member.setAdmin(!member.isAdmin());
+        memberRepository.save(member);
+        return 0;
     }
 }

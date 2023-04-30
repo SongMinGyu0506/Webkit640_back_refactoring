@@ -2,13 +2,9 @@ package com.webkit640.backend.controller;
 
 import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
-import com.webkit640.backend.dto.response.AllMemberDtoResponse;
-import com.webkit640.backend.dto.response.LoginDtoResponse;
 import com.webkit640.backend.dto.response.ResponseWrapper;
-import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
 import com.webkit640.backend.service.MemberService;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,13 +55,13 @@ class MemberControllerTest {
         String url = "http://localhost:" + port + "/auth/sign-up";
 
         ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(url,dto,ResponseWrapper.class);
-        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(lhm.get("name")).isEqualTo("test_name");
-        assertThat(lhm.get("email")).isEqualTo("test@test.com");
-        assertThat(lhm.get("memberBelong")).isEqualTo("Student");
-        assertThat(lhm.get("memberType")).isEqualTo("ADMIN");
+//        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
+//
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+//        assertThat(lhm.get("name")).isEqualTo("test_name");
+//        assertThat(lhm.get("email")).isEqualTo("test@test.com");
+//        assertThat(lhm.get("memberBelong")).isEqualTo("Student");
+//        assertThat(lhm.get("memberType")).isEqualTo("ADMIN");
     }
     
     @Test
@@ -81,15 +77,14 @@ class MemberControllerTest {
 
         String url = "http://localhost:" + port + "/auth/sign-up";
         ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(url,dto,ResponseWrapper.class);
-        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         LoginDtoRequest dtos = LoginDtoRequest.builder()
-                .email(lhm.get("email").toString())
+                .email("test@test.com")
                 .password("1234")
                 .build();
         String urls = "http://localhost:"+port+"/auth/login";
         response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
-        lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
+        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(lhm.get("email")).isEqualTo("test@test.com");
@@ -111,15 +106,14 @@ class MemberControllerTest {
 
         String url = "http://localhost:" + port + "/auth/sign-up";
         ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(url,dto,ResponseWrapper.class);
-        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         LoginDtoRequest dtos = LoginDtoRequest.builder()
-                .email(lhm.get("email").toString())
+                .email("test@test.com")
                 .password("1234")
                 .build();
         String urls = "http://localhost:"+port+"/auth/login";
         response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
-        lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
+        LinkedHashMap<String,Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization","Bearer "+lhm.get("token"));
