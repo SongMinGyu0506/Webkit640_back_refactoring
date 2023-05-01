@@ -85,4 +85,13 @@ public class MemberServiceImpl implements MemberService{
         member.setAdmin(!member.isAdmin());
         memberRepository.save(member);
     }
+
+    @Override
+    public Member getMemberById(int memberId) {
+        Member member = memberRepository.findById(memberId);
+        if (member == null) {
+            throw new NotFoundDataException("Not Found member");
+        }
+        return member;
+    }
 }

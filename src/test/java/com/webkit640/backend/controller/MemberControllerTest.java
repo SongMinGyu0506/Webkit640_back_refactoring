@@ -53,7 +53,7 @@ class MemberControllerTest {
                 .memberBelong("Student")
                 .memberType("ADMIN")
                 .build();
-        String url = "http://localhost:" + port + "/auth/sign-up";
+        String url = "http://localhost:" + port + "/auth/member";
         return restTemplate.postForEntity(url,dto,ResponseWrapper.class);
     }
     @SuppressWarnings("unchecked")
@@ -63,7 +63,7 @@ class MemberControllerTest {
                 .email("test@test.com")
                 .password("1234")
                 .build();
-        String urls = "http://localhost:"+port+"/auth/login";
+        String urls = "http://localhost:"+port+"/auth";
         response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
         return response;
     }
@@ -73,6 +73,11 @@ class MemberControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
     }
+
+    String makeToken() {
+        return (String) makeLoginBody().get("token");
+    }
+
     @SuppressWarnings("unchecked")
     List<LinkedHashMap<String,Object>> makeViewMembers() {
         ResponseEntity<ResponseWrapper> response = makeAccount();
@@ -81,26 +86,20 @@ class MemberControllerTest {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization","Bearer "+lhm.get("token"));
         HttpEntity request = new HttpEntity(headers);
-        String requestUrl = "http://localhost:"+port+"/auth/view-members";
+        String requestUrl = "http://localhost:"+port+"/auth/member";
         response = restTemplate.exchange(requestUrl,HttpMethod.GET,request,ResponseWrapper.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return (List<LinkedHashMap<String, Object>>) response.getBody().getData().get(0);
     }
 
-    ResponseEntity<ResponseWrapper> makeChangeAdmin() {
+    ResponseEntity<ResponseWrapper> makeChangeAdmin(String email) {
         restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         LinkedHashMap<String,Object> lhm = makeLoginBody();
-        AllMemberDto allMemberDto = AllMemberDto.builder()
-                .email("test@test.com")
-                .isAdmin(false)
-                .memberBelong("testCorps")
-                .name("test_a")
-                .memberType("student")
-                .build();
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization","Bearer "+lhm.get("token"));
-        HttpEntity<AllMemberDto> request = new HttpEntity<>(allMemberDto,headers);
-        String requestUrl = "http://localhost:"+port+"/auth/admin-change";
+        HttpEntity request = new HttpEntity<>(headers);
+        String requestUrl = "http://localhost:"+port+"/auth/admin-change?email="+email;
         return restTemplate.exchange(requestUrl,HttpMethod.PATCH,request,ResponseWrapper.class);
     }
     ResponseEntity<ResponseWrapper> secondChange(String email) {
@@ -108,22 +107,14 @@ class MemberControllerTest {
                 .email("test@test.com")
                 .password("1234")
                 .build();
-        String urls = "http://localhost:"+port+"/auth/login";
+        String urls = "http://localhost:"+port+"/auth";
         ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
         LinkedHashMap<String, Object> lhm = (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
 
-        AllMemberDto allMemberDto = AllMemberDto.builder()
-                .email(email)
-                .isAdmin(false)
-                .memberBelong("testCorps")
-                .name("test_a")
-                .memberType("student")
-                .build();
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization","Bearer "+lhm.get("token"));
-        HttpEntity<AllMemberDto> request = new HttpEntity<>(allMemberDto,headers);
-        String requestUrl = "http://localhost:"+port+"/auth/admin-change";
+        HttpEntity request = new HttpEntity(headers);
+        String requestUrl = "http://localhost:"+port+"/auth/admin-change?email="+email;
         return restTemplate.exchange(requestUrl,HttpMethod.PATCH,request,ResponseWrapper.class);
 
     }
@@ -138,7 +129,7 @@ class MemberControllerTest {
         ResponseEntity<ResponseWrapper> response = makeAccount();
         Member member = memberRepository.findByEmail("test@test.com");
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(member.getName()).isEqualTo("test_name");
         assertThat(member.getMemberBelong()).isEqualTo("Student");
         assertThat(member.getMemberType()).isEqualTo("ADMIN");
@@ -176,7 +167,7 @@ class MemberControllerTest {
     @DisplayName("관리자 권한 부여 테스트")
     @Order(4)
     void adminChange() {
-        assertThat(makeChangeAdmin().getStatusCodeValue()).isEqualTo(401);
+        assertThat(makeChangeAdmin("test@test.com").getStatusCodeValue()).isEqualTo(401);
 
         //관리자 권한 부여
         Member member = memberRepository.findByEmail("test@test.com");
@@ -185,5 +176,36 @@ class MemberControllerTest {
 
         assertThat(secondChange("test123@test.com").getStatusCodeValue()).isEqualTo(400);
         assertThat(secondChange("test@test.com").getStatusCodeValue()).isEqualTo(204);
+    }
+
+    LinkedHashMap<String, Object> viewMemberLogin() {
+        LoginDtoRequest dtos = LoginDtoRequest.builder()
+                .email("test@test.com")
+                .password("1234")
+                .build();
+        String urls = "http://localhost:"+port+"/auth";
+        ResponseEntity<ResponseWrapper> response = restTemplate.postForEntity(urls,dtos,ResponseWrapper.class);
+        return (LinkedHashMap<String, Object>) response.getBody().getData().get(0);
+    }
+
+    @Test
+    @DisplayName("멤버 찾기")
+    @Order(5)
+    void viewMember() {
+        String url = makeAccount().getHeaders().get("Location").get(0);
+        String token = (String) viewMemberLogin().get("token");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization","Bearer "+token);
+        HttpEntity entity = new HttpEntity(headers);
+        ResponseEntity<AllMemberDto> exchange = restTemplate.exchange(url, HttpMethod.GET, entity, AllMemberDto.class);
+
+
+        assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange.getBody().getEmail()).isEqualTo("test@test.com");
+        assertThat(exchange.getBody().isAdmin()).isEqualTo(false);
+        assertThat(exchange.getBody().getMemberBelong()).isEqualTo("Student");
+        assertThat(exchange.getBody().getMemberType()).isEqualTo("ADMIN");
+        assertThat(exchange.getBody().getName()).isEqualTo("test_name");
     }
 }

@@ -18,5 +18,7 @@ public interface MemberService {
     HashMap<String,Object> getByCredentials(String email, String password);
     String getEmailById(int id);
     void changeAdmin(String email,int id);
+
+    Member getMemberById(int memberId);
 //    Member getMember(int id);
 }
