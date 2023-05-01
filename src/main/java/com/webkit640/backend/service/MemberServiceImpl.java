@@ -41,21 +41,6 @@ public class MemberServiceImpl implements MemberService{
     }
 
     @Override
-    public Member read(int id) {
-        return memberRepository.findById(id);
-    }
-
-    @Override
-    public Member update(Member member) {
-        return memberRepository.save(member);
-    }
-
-    @Override
-    public void delete(int id) {
-        memberRepository.deleteById(id);
-    }
-
-    @Override
     public HashMap<String,Object> getByCredentials(String email, String password) {
         Member member =  memberRepository.findByEmailAndPassword(email,password);
         HashMap<String,Object> returnData = new HashMap<>();

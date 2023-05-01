@@ -12,9 +12,6 @@ import java.util.List;
 public interface MemberService {
     Member create(Member member);
     List<Member> readAll();
-    Member read(int id);
-    Member update(Member member);
-    void delete(int id);
     HashMap<String,Object> getByCredentials(String email, String password);
     String getEmailById(int id);
     void changeAdmin(String email,int id);
