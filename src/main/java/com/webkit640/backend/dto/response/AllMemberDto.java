@@ -35,4 +35,13 @@ public class AllMemberDto {
         ));
         return result;
     }
+    public static AllMemberDto entityToDtos(Member member) {
+        return AllMemberDto.builder()
+                .email(member.getEmail())
+                .memberType(member.getMemberType())
+                .memberBelong(member.getMemberBelong())
+                .name(member.getName())
+                .isAdmin(member.isAdmin())
+                .build();
+    }
 }
