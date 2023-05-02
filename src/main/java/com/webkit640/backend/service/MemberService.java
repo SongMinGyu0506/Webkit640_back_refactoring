@@ -17,5 +17,5 @@ public interface MemberService {
     void changeAdmin(String email,int id);
 
     Member getMemberById(int memberId);
-//    Member getMember(int id);
+    HashMap<String,Object> OAuthLogin(String code);
 }

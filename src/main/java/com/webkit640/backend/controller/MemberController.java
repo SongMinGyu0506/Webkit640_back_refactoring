@@ -59,9 +59,17 @@ public class MemberController {
         return ResponseEntity.ok().body(AllMemberDto.entityToDtos(memberService.getMemberById(memberId)));
     }
 
+    @GetMapping("/kakao")
+    public ResponseEntity<?> kakaoLogin(@RequestParam String code) {
+        HashMap<String, Object> data = memberService.OAuthLogin(code);
+        return ResponseEntity.ok().body(
+                ResponseWrapper.addObject(LoginDtoResponse.entityToDto((Member)data.get("member"),(String)data.get("token")),HttpStatus.OK));
+    }
+
     @PatchMapping("/admin-change")
     public ResponseEntity<?> changeAdmin(@AuthenticationPrincipal int id, @RequestParam String email) {
         memberService.changeAdmin(email,id);
         return ResponseEntity.noContent().build();
     }
+
 }

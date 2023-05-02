@@ -34,4 +34,9 @@ public class GlobalExceptionalHandler {
     public final ResponseEntity<?> handleNotFoundDataExceptions(Exception ex, WebRequest request) {
         return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request),HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(OAuthLoginException.class)
+    public final ResponseEntity<?> handleOAuthLoginExceptions(Exception ex, WebRequest request) {
+        return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request),HttpStatus.UNAUTHORIZED);
+    }
 }

@@ -1,14 +1,12 @@
 package com.webkit640.backend.service;
 
-import com.webkit640.backend.config.exception.AlreadyExistsException;
-import com.webkit640.backend.config.exception.LoginFailedException;
-import com.webkit640.backend.config.exception.NoAdminException;
-import com.webkit640.backend.config.exception.NotFoundDataException;
+import com.webkit640.backend.config.exception.*;
 import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -20,11 +18,15 @@ public class MemberServiceImpl implements MemberService{
 
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;
+    private final OAuthLoginService oAuthLoginService;
 
     @Autowired
-    public MemberServiceImpl(MemberRepository memberRepository,TokenProvider tokenProvider) {
+    public MemberServiceImpl(MemberRepository memberRepository,
+                             TokenProvider tokenProvider,
+                             @Qualifier("OAuthLoginServiceKakao") OAuthLoginService oAuthLoginService) {
         this.memberRepository = memberRepository;
         this.tokenProvider = tokenProvider;
+        this.oAuthLoginService = oAuthLoginService;
     }
 
     @Override
@@ -78,5 +80,19 @@ public class MemberServiceImpl implements MemberService{
             throw new NotFoundDataException("Not Found member");
         }
         return member;
+    }
+
+    @Override
+    public HashMap<String,Object> OAuthLogin(String code) {
+        String oAuthEmail = oAuthLoginService.accessUser(oAuthLoginService.getAccessToken(code));
+        Member member = memberRepository.findByEmail(oAuthEmail);
+        HashMap<String,Object> returnData = new HashMap<>();
+        if (member != null) {
+            returnData.put("token",tokenProvider.create(member));
+            returnData.put("member",member);
+            return returnData;
+        } else {
+            throw new LoginFailedException("NOT REGISTERED USER");
+        }
     }
 }
