@@ -39,4 +39,9 @@ public class GlobalExceptionalHandler {
     public final ResponseEntity<?> handleOAuthLoginExceptions(Exception ex, WebRequest request) {
         return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request),HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(FileServiceException.class)
+    public final ResponseEntity<?> handleFileServiceException(Exception ex, WebRequest request) {
+        return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
