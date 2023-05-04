@@ -47,7 +47,6 @@ public class Applicant extends DateAudit {
     private String schoolNum;
     private String schoolYear;
 
-    @NotNull
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId")
     private Member member;
