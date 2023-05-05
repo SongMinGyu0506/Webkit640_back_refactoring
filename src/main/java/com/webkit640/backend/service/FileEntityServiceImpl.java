@@ -1,24 +1,28 @@
 package com.webkit640.backend.service;
 
 import com.webkit640.backend.config.exception.FileServiceException;
+import com.webkit640.backend.config.exception.LoginFailedException;
+import com.webkit640.backend.config.exception.NoAdminException;
 import com.webkit640.backend.config.exception.NotFoundDataException;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.FileEntityRepository;
+import com.webkit640.backend.repository.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -28,9 +32,14 @@ public class FileEntityServiceImpl implements FileEntityService {
     private String fileDir;
 
     private final FileEntityRepository fileEntityRepository;
+    private final MemberRepository memberRepository;
+    private final ResourceLoader resourceLoader;
 
-    public FileEntityServiceImpl(FileEntityRepository fileEntityRepository) {
+    @Autowired
+    public FileEntityServiceImpl(FileEntityRepository fileEntityRepository, MemberRepository memberRepository, ResourceLoader resourceLoader) {
         this.fileEntityRepository = fileEntityRepository;
+        this.memberRepository = memberRepository;
+        this.resourceLoader = resourceLoader;
     }
 
     private String getGenerationName(LocalDate ld) {
@@ -79,7 +88,7 @@ public class FileEntityServiceImpl implements FileEntityService {
         "application/x-tika-msoffice"};
         List<String> mimeList = new ArrayList<>(Arrays.asList(mimeArr));
         String extension = originalName.substring(originalName.lastIndexOf(".")+1);
-        String saveName = applicant.getMember().getName() + "_apply_."+extension;
+        String saveName = applicant.getMember().getEmail() + "_apply."+extension;
         if (mimeList.contains(mimeType)) {
             FileEntity file = FileEntity.builder()
                     .applicant(applicant)
@@ -98,8 +107,20 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
-    public String findByMemberId(Member member) {
-        return null;
+    public Map<String,Object> applicationDownload(int id, String email) {
+        Map<String,Object> result = new HashMap<>();
+        if (!memberRepository.findById(id).isAdmin()) {
+            throw new NoAdminException("관리자가 아닙니다.");
+        }
+        FileEntity file = fileEntityRepository.findByMemberId(memberRepository.findByEmail(email).getId());
+        try {
+            result.put("resource",resourceLoader.getResource("file:"+file.getFilePath()+file.getFileName()));
+            result.put("file",resourceLoader.getResource("file:"+file.getFilePath()+file.getFileName()).getFile());
+            result.put("fileName",file.getFileName());
+            return result;
+        } catch (Exception e) {
+            throw new FileServiceException("Not found File(Application)");
+        }
     }
 
     @Override

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FileEntityRepository extends JpaRepository<FileEntity,Integer> {
-
+    FileEntity findByMemberId(int memberId);
 }
