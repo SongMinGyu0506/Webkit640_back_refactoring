@@ -20,9 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
@@ -99,8 +103,7 @@ public class FileEntityServiceImpl implements FileEntityService {
                     .member(member)
                     .build();
             files.transferTo(new File(yearFolderName+"/"+saveName));
-            FileEntity result = fileEntityRepository.save(file);
-            return result;
+            return fileEntityRepository.save(file);
         } else {
             throw new FileServiceException("Only pdf,hwp,docx");
         }
@@ -124,8 +127,34 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
-    public String filesToZip() {
-        return null;
+    public Resource filesToZip() {
+        String name = getGenerationName(LocalDate.now());
+        String path = name+"\\"+name.substring(name.length()-6)+".zip";
+        File existFile = new File(path);
+        if (existFile.exists()) {existFile.delete();}
+        File[] applications = new File(name).listFiles();
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(path))) {
+            Arrays.stream(applications).forEach(file -> {
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    ZipEntry zipEntry = new ZipEntry(file.getName());
+                    zos.putNextEntry(zipEntry);
+
+                    byte[] bytes = new byte[104857600];
+                    int length;
+                    while ((length = fis.read(bytes)) >= 0) {
+                        zos.write(bytes,0,length);
+                    }
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new FileServiceException("Zip file processing error");
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new FileServiceException("ZIP File output stream error");
+        }
+        return resourceLoader.getResource("file:"+path);
     }
 
     @Override
