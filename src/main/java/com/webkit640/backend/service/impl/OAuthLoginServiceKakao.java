@@ -1,8 +1,9 @@
-package com.webkit640.backend.service;
+package com.webkit640.backend.service.impl;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.webkit640.backend.config.exception.OAuthLoginException;
+import com.webkit640.backend.service.logic.OAuthLoginService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 @Service
-public class OAuthLoginServiceKakao implements OAuthLoginService{
+public class OAuthLoginServiceKakao implements OAuthLoginService {
     @Value("${Kakao-oAuth-key}")
     private String kakaoRestApiKey;
     @Override

@@ -1,16 +1,13 @@
 package com.webkit640.backend.controller;
 
 
-import com.webkit640.backend.config.exception.AlreadyExistsException;
-import com.webkit640.backend.config.exception.LoginFailedException;
 import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
 import com.webkit640.backend.dto.response.AllMemberDto;
 import com.webkit640.backend.dto.response.LoginDtoResponse;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Member;
-import com.webkit640.backend.service.MemberService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.webkit640.backend.service.logic.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

@@ -1,12 +1,11 @@
 package com.webkit640.backend.config.aspect.log;
 
 import com.webkit640.backend.config.exception.NoAdminException;
-import com.webkit640.backend.service.MemberService;
+import com.webkit640.backend.service.logic.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

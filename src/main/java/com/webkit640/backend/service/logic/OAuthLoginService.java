@@ -1,4 +1,4 @@
-package com.webkit640.backend.service;
+package com.webkit640.backend.service.logic;
 
 import org.springframework.stereotype.Service;
 

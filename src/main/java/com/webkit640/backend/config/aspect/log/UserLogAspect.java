@@ -1,6 +1,6 @@
 package com.webkit640.backend.config.aspect.log;
 
-import com.webkit640.backend.service.MemberService;
+import com.webkit640.backend.service.logic.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

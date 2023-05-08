@@ -1,9 +1,11 @@
-package com.webkit640.backend.service;
+package com.webkit640.backend.service.impl;
 
 import com.webkit640.backend.config.exception.*;
 import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.service.logic.MemberService;
+import com.webkit640.backend.service.logic.OAuthLoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,7 +16,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class MemberServiceImpl implements MemberService{
+public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;

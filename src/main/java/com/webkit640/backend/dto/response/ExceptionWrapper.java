@@ -21,12 +21,12 @@ public class ExceptionWrapper {
     private String description;
 
 
-    public static ExceptionWrapper makeResponse(Exception ex, WebRequest request) {
+    public static ExceptionWrapper makeResponse(Exception ex, WebRequest request,HttpStatus status) {
         return ExceptionWrapper.builder()
                 .description(request.getDescription(false))
                 .error(ex.getMessage())
                 .timestamp(new Date())
-                .status(HttpStatus.BAD_REQUEST)
+                .status(status)
                 .build();
     }
 }

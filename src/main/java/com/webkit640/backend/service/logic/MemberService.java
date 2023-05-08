@@ -1,4 +1,4 @@
-package com.webkit640.backend.service;
+package com.webkit640.backend.service.logic;
 
 import com.webkit640.backend.entity.Member;
 import lombok.extern.slf4j.Slf4j;
