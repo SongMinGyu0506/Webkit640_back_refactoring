@@ -6,8 +6,7 @@ import com.webkit640.backend.dto.response.AllMemberDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.MemberRepository;
-import com.webkit640.backend.service.MemberService;
-import org.aspectj.lang.annotation.Before;
+import com.webkit640.backend.service.logic.MemberService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +14,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedHashMap;
 import java.util.List;
