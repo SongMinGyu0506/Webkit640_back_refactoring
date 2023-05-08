@@ -1,10 +1,11 @@
-package com.webkit640.backend.service;
+package com.webkit640.backend.service.impl;
 
 import com.webkit640.backend.config.exception.NotFoundDataException;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.ApplicantRepository;
 import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.service.logic.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,7 @@ import java.util.HashMap;
 
 @Service
 @Slf4j
-public class ApplicationServiceImpl implements ApplicationService{
+public class ApplicationServiceImpl implements ApplicationService {
     private final MemberRepository memberRepository;
     private final ApplicantRepository applicantRepository;
 
@@ -28,6 +29,7 @@ public class ApplicationServiceImpl implements ApplicationService{
             throw new NotFoundDataException("User Error");
         }
         applicant.setMember(member);
+        applicant.setApply(true);
         member.setApplicant(applicant);
 
         Applicant resultApplicant = applicantRepository.save(applicant);
