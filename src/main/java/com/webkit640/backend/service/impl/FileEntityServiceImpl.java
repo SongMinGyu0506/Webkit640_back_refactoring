@@ -1,7 +1,6 @@
-package com.webkit640.backend.service;
+package com.webkit640.backend.service.impl;
 
 import com.webkit640.backend.config.exception.FileServiceException;
-import com.webkit640.backend.config.exception.LoginFailedException;
 import com.webkit640.backend.config.exception.NoAdminException;
 import com.webkit640.backend.config.exception.NotFoundDataException;
 import com.webkit640.backend.entity.Applicant;
@@ -10,6 +9,7 @@ import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.FileEntityRepository;
 import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.service.logic.FileEntityService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +34,8 @@ public class FileEntityServiceImpl implements FileEntityService {
 
     @Value("${file_dir}")
     private String fileDir;
+    @Value("${mime_type}")
+    private ArrayList<String> mimeTypeList;
 
     private final FileEntityRepository fileEntityRepository;
     private final MemberRepository memberRepository;
@@ -81,19 +83,9 @@ public class FileEntityServiceImpl implements FileEntityService {
         Tika tika = new Tika();
         String originalName = files.getOriginalFilename();
         String mimeType = tika.detect(files.getBytes());
-        log.info(mimeType);
-        String[] mimeArr = {"application/pdf",
-                "application/x-hwp",
-                "application/haansofthwp",
-                "application/vnd.hancom.hwp",
-                "application/vnd.hancom.*",
-                "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/x-tika-msoffice"};
-        List<String> mimeList = new ArrayList<>(Arrays.asList(mimeArr));
         String extension = originalName.substring(originalName.lastIndexOf(".")+1);
         String saveName = applicant.getMember().getEmail() + "_apply."+extension;
-        if (mimeList.contains(mimeType)) {
+        if (mimeTypeList.contains(mimeType)) {
             FileEntity file = FileEntity.builder()
                     .applicant(applicant)
                     .fileExtension(extension)
