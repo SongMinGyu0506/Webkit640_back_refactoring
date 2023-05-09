@@ -1,20 +1,16 @@
 ---
 name: Feature
-about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+about: 기능추가 필요
+title: "[Feat]"
+labels: enhancement
+assignees: SongMinGyu0506
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Description
+> des
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
-
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
+## Progress
+- [ ] todo1
+- [ ] todo2
+- [ ] todo3
