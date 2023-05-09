@@ -72,7 +72,7 @@ public class ApplicationController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM.toString())
                 .body(resource);
     }
-
+    //test
     @Admin
     @GetMapping("/file")
     public ResponseEntity<?> adminZipDownloadApplication(@AuthenticationPrincipal int id) {
