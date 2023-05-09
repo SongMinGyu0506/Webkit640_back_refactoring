@@ -3,8 +3,10 @@ package com.webkit640.backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.webkit640.backend.dto.ApplicationDto;
 import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
+import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.ApplicantRepository;
 import com.webkit640.backend.repository.FileEntityRepository;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,5 +164,36 @@ class ApplicationControllerTest {
             e.printStackTrace();
         }
     }
+    @Test
+    @Order(4)
+    @DisplayName("관리자 지원자 선택 테스트")
+    void adminSelection() throws Exception {
+        /**
+         * ADMIN 권한 부여
+         */
+        Member member = memberRepository.findByEmail("test@test.com");
+        member.setAdmin(true);
+        memberRepository.save(member);
 
+        /**
+         * dto 생성
+         */
+        List<String> emails = new ArrayList<>();
+        emails.add("test@test.com");
+        ApplicationDto.SelectionRequestDto dto = ApplicationDto.SelectionRequestDto.builder().emails(emails).build();
+
+        /**
+         * 테스트 수행, 정상 수행 결과 : 204(noContent), applicant.isAdminApply == true
+         */
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection")
+                .header("Authorization",login())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(dto))).andExpect(status().isNoContent());
+
+        Applicant applicant = applicantRepository.findByMemberId(member.getId());
+        assertAll(
+                ()->assertThat(applicant.isAdminApply()).isEqualTo(true)
+        );
+
+    }
 }
