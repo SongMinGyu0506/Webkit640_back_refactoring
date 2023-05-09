@@ -72,7 +72,6 @@ public class ApplicationController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM.toString())
                 .body(resource);
     }
-
     @Admin
     @GetMapping("/file")
     public ResponseEntity<?> adminZipDownloadApplication(@AuthenticationPrincipal int id) {
@@ -88,8 +87,10 @@ public class ApplicationController {
         }
     }
 
-    @GetMapping("")
-    public ResponseEntity<?> viewApplicantList(@AuthenticationPrincipal int id, @RequestParam String year, @RequestParam String month) {
-        return null;
+    @Admin
+    @PatchMapping("/selection")
+    public ResponseEntity<?> adminSelectionApplicants(@AuthenticationPrincipal int id, @RequestBody ApplicationDto.SelectionRequestDto emails) {
+        applicationService.adminSelection(emails.getEmails());
+        return ResponseEntity.noContent().build();
     }
 }

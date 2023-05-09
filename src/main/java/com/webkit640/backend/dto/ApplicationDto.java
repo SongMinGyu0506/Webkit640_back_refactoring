@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -57,6 +59,13 @@ public class ApplicationDto {
                     .fileName(file.getFileName())
                     .build();
         }
+    }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SelectionRequestDto {
+        List<String> emails;
     }
 }

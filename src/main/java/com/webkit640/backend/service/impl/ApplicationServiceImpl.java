@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -41,5 +42,18 @@ public class ApplicationServiceImpl implements ApplicationService {
         result.put("applicationId",resultApplicant.getId());
 
         return result;
+    }
+
+    @Override
+    public void adminSelection(List<String> emails) {
+        emails.stream().forEach(email -> {
+            Member member = memberRepository.findByEmail(email);
+            if (member == null) {
+                throw new NotFoundDataException("해당 이메일을 가진 지원자가 없습니다.");
+            }
+            Applicant applicant = applicantRepository.findByMemberId(member.getId());
+            applicant.setAdminApply(!applicant.isAdminApply());
+            applicantRepository.save(applicant);
+        });
     }
 }
