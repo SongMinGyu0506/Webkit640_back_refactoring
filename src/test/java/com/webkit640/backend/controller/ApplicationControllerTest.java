@@ -6,11 +6,14 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.webkit640.backend.dto.ApplicationDto;
 import com.webkit640.backend.dto.request.LoginDtoRequest;
 import com.webkit640.backend.dto.request.SignupDtoRequest;
+import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
+import com.webkit640.backend.entity.Trainee;
 import com.webkit640.backend.repository.ApplicantRepository;
 import com.webkit640.backend.repository.FileEntityRepository;
 import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.repository.TraineeRepository;
 import com.webkit640.backend.service.impl.FileEntityServiceImpl;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +62,8 @@ class ApplicationControllerTest {
     private ApplicantRepository applicantRepository;
     @Autowired
     private FileEntityRepository fileEntityRepository;
+    @Autowired
+    private TraineeRepository traineeRepository;
 
     @Autowired
     Gson gson;
@@ -194,6 +199,26 @@ class ApplicationControllerTest {
         assertAll(
                 ()->assertThat(applicant.isAdminApply()).isEqualTo(true)
         );
+    }
 
+    @Test
+    @DisplayName("지원자 교육 최종결정 테스트")
+    @Order(5)
+    void selectionConfirmation() throws Exception {
+        Member member = memberRepository.findByEmail("test@test.com");
+        member.setAdmin(true);
+        memberRepository.save(member);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation").header("Authorization",login()))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/trainee").header("Authorization", login()))
+                .andExpect(status().isCreated()).andReturn();
+
+        Applicant applicant = applicantRepository.findByMemberId(traineeRepository.findById(1).getApplicant().getId());
+        assertAll(
+                ()->assertThat(applicant.getName()).isEqualTo("song"),
+                ()->assertThat(applicant.getMajor()).isEqualTo("com"),
+                ()->assertThat(applicant.getSchool()).isEqualTo("string")
+        );
     }
 }
