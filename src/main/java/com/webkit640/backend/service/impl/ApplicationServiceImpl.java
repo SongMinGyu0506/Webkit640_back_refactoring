@@ -1,14 +1,18 @@
 package com.webkit640.backend.service.impl;
 
+import com.webkit640.backend.config.exception.ApplicantLogicException;
 import com.webkit640.backend.config.exception.NotFoundDataException;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
+import com.webkit640.backend.entity.Trainee;
 import com.webkit640.backend.repository.ApplicantRepository;
 import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.repository.TraineeRepository;
 import com.webkit640.backend.service.logic.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 
@@ -55,5 +59,15 @@ public class ApplicationServiceImpl implements ApplicationService {
             applicant.setAdminApply(!applicant.isAdminApply());
             applicantRepository.save(applicant);
         });
+    }
+
+    @Override
+    public void selectionConfirmation(int id) {
+        Applicant byMemberId = applicantRepository.findByMemberId(id);
+        if (byMemberId == null) {
+            throw new NotFoundDataException("Not Applicant");
+        }
+        byMemberId.setSelect(!byMemberId.isSelect());
+        applicantRepository.save(byMemberId);
     }
 }

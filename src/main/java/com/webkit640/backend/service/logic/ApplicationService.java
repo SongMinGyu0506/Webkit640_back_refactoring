@@ -12,4 +12,6 @@ public interface ApplicationService {
     HashMap<String,Object> saveEntity(int id, Applicant applicant);
 
     void adminSelection(List<String> emails);
+
+    void selectionConfirmation(int id);
 }

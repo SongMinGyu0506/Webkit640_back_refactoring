@@ -93,4 +93,10 @@ public class ApplicationController {
         applicationService.adminSelection(emails.getEmails());
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/selection/confirmation")
+    public ResponseEntity<?> selectionConfirmation(@AuthenticationPrincipal int id) {
+        applicationService.selectionConfirmation(id);
+        return ResponseEntity.noContent().build();
+    }
 }
