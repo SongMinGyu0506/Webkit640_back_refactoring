@@ -44,4 +44,9 @@ public class GlobalExceptionalHandler {
     public final ResponseEntity<?> handleFileServiceException(Exception ex, WebRequest request) {
         return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request,HttpStatus.INTERNAL_SERVER_ERROR),HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(ApplicantLogicException.class)
+    public final ResponseEntity<?> handleApplicantLogicException(Exception ex, WebRequest request) {
+        return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request,HttpStatus.FORBIDDEN),HttpStatus.FORBIDDEN);
+    }
 }
