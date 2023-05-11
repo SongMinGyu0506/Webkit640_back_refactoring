@@ -10,16 +10,15 @@ import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.entity.Trainee;
-import com.webkit640.backend.repository.ApplicantRepository;
-import com.webkit640.backend.repository.FileEntityRepository;
-import com.webkit640.backend.repository.MemberRepository;
-import com.webkit640.backend.repository.TraineeRepository;
+import com.webkit640.backend.repository.*;
 import com.webkit640.backend.service.impl.FileEntityServiceImpl;
+import com.webkit640.backend.service.logic.ApplicationService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -27,6 +26,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -54,6 +55,9 @@ class ApplicationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     private String bearerToken;
+
+    @Autowired
+    private ApplicationService applicationService;
 
     @Autowired
     private FileEntityServiceImpl fileEntityService;
@@ -222,5 +226,45 @@ class ApplicationControllerTest {
                 ()->assertThat(applicant.getMajor()).isEqualTo("com"),
                 ()->assertThat(applicant.getSchool()).isEqualTo("string")
         );
+    }
+    @Test
+    @DisplayName("지원자 목록 출력")
+    @Order(6)
+    void viewList() throws Exception {
+        Member member = memberRepository.findByEmail("test@test.com");
+        member.setAdmin(true);
+        memberRepository.save(member);
+
+        MultiValueMap<String,String> params = new LinkedMultiValueMap<>();
+        params.add("year","2023");
+        params.add("school","string");
+        params.add("major","com");
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()).params(params))
+                .andExpect(status().isOk()).andReturn();
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()))
+                .andExpect(status().isOk()).andReturn();
+        params.remove("year");
+        MvcResult result3 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()).params(params))
+                .andExpect(status().isOk()).andReturn();
+        params.remove("school");
+        MvcResult result4 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()).params(params))
+                .andExpect(status().isOk()).andReturn();
+        System.out.println(result1.getResponse().getContentAsString());
+    }
+
+    @Test
+    @DisplayName("지원자 검색")
+    @Order(7)
+    void viewApplicant() throws Exception {
+        Member member = memberRepository.findByEmail("test@test.com");
+        member.setAdmin(true);
+        memberRepository.save(member);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/application/test@test.com")
+                .header("Authorization",login())).andExpect(status().isOk()).andReturn();
+
+        System.out.println(result.getResponse().getContentAsString());
+
     }
 }

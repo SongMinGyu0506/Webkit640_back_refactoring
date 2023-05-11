@@ -6,10 +6,12 @@ import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.entity.Trainee;
 import com.webkit640.backend.repository.ApplicantRepository;
+import com.webkit640.backend.repository.ApplicantSpec;
 import com.webkit640.backend.repository.MemberRepository;
 import com.webkit640.backend.repository.TraineeRepository;
 import com.webkit640.backend.service.logic.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -69,5 +71,26 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         byMemberId.setSelect(!byMemberId.isSelect());
         applicantRepository.save(byMemberId);
+    }
+
+    @Override
+    public List<Applicant> getApplicantList(String year, String school, String major) {
+        Specification<Applicant> spec = (root, query, criteriaBuilder) -> null;
+        if (year != null) {
+            spec = spec.and(ApplicantSpec.likeCreateDate(year+"-"));
+        } else if (school != null) {
+            spec = spec.and(ApplicantSpec.likeSchool(school));
+        } else if (major != null) {
+            spec = spec.and(ApplicantSpec.likeMajor(major));
+        }
+
+        return applicantRepository.findAll(spec);
+    }
+
+    @Override
+    public List<Applicant> getApplicantList(String email) {
+        Specification<Applicant> spec = (root, query, criteriaBuilder) -> null;
+        spec = spec.and(ApplicantSpec.equalMemberId(memberRepository.findByEmail(email).getId()));
+        return applicantRepository.findAll(spec);
     }
 }
