@@ -90,7 +90,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<Applicant> getApplicantList(String email) {
         Specification<Applicant> spec = (root, query, criteriaBuilder) -> null;
-        spec = spec.and(ApplicantSpec.equalMemberId(memberRepository.findByEmail(email).getId()));
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            throw new NotFoundDataException("Not found User data");
+        }
+        spec = spec.and(ApplicantSpec.equalMemberId(member.getId()));
         return applicantRepository.findAll(spec);
     }
 }

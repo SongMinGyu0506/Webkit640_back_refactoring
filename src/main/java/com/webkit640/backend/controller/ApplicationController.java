@@ -115,6 +115,6 @@ public class ApplicationController {
     @GetMapping("/{email}")
     public ResponseEntity<?> viewApplicant(@AuthenticationPrincipal int id, @PathVariable String email) {
         return ResponseEntity.ok().body(ResponseWrapper.addObject(
-                ApplicationDto.ApplicationResponseDto.listEntityToDto(applicationService.getApplicantList(email)),HttpStatus.OK));
+                ApplicationDto.ApplicantListResponseDto.listEntityToDto(applicationService.getApplicantList(email)),HttpStatus.OK));
     }
 }
