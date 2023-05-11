@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -204,6 +205,7 @@ class ApplicationControllerTest {
     @Test
     @DisplayName("지원자 교육 최종결정 테스트")
     @Order(5)
+    @Transactional
     void selectionConfirmation() throws Exception {
         Member member = memberRepository.findByEmail("test@test.com");
         member.setAdmin(true);
@@ -214,7 +216,7 @@ class ApplicationControllerTest {
         mockMvc.perform(post("/trainee").header("Authorization", login()))
                 .andExpect(status().isCreated()).andReturn();
 
-        Applicant applicant = applicantRepository.findByMemberId(traineeRepository.findById(1).getApplicant().getId());
+        Applicant applicant = traineeRepository.findById(1).getApplicant();
         assertAll(
                 ()->assertThat(applicant.getName()).isEqualTo("song"),
                 ()->assertThat(applicant.getMajor()).isEqualTo("com"),
