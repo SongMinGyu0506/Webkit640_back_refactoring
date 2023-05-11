@@ -99,4 +99,22 @@ public class ApplicationController {
         applicationService.selectionConfirmation(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Admin
+    @GetMapping("")
+    public ResponseEntity<?> viewApplicantList(
+            @AuthenticationPrincipal int id,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String school,
+            @RequestParam(required = false) String major) {
+        return ResponseEntity.ok().body(ResponseWrapper.addObject(
+                ApplicationDto.ApplicantListResponseDto.listEntityToDto(applicationService.getApplicantList(year,school,major)),HttpStatus.OK));
+    }
+
+    @Admin
+    @GetMapping("/{email}")
+    public ResponseEntity<?> viewApplicant(@AuthenticationPrincipal int id, @PathVariable String email) {
+        return ResponseEntity.ok().body(ResponseWrapper.addObject(
+                ApplicationDto.ApplicationResponseDto.listEntityToDto(applicationService.getApplicantList(email)),HttpStatus.OK));
+    }
 }
