@@ -1,28 +1,24 @@
 package com.webkit640.backend.controller;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
+import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.dto.ApplicationDto;
-import com.webkit640.backend.dto.request.LoginDtoRequest;
-import com.webkit640.backend.dto.request.SignupDtoRequest;
-import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.entity.Trainee;
 import com.webkit640.backend.repository.*;
-import com.webkit640.backend.service.impl.FileEntityServiceImpl;
-import com.webkit640.backend.service.logic.ApplicationService;
+import com.webkit640.backend.service.logic.MemberService;
+import com.webkit640.backend.service.logic.TraineeService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -37,82 +33,51 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ApplicationControllerTest {
-
-    @LocalServerPort
-    int port;
+@Commit
+public class ApplicationControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
-    private String bearerToken;
-
-    @Autowired
-    private ApplicationService applicationService;
-
-    @Autowired
-    private FileEntityServiceImpl fileEntityService;
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private ApplicantRepository applicantRepository;
-    @Autowired
-    private FileEntityRepository fileEntityRepository;
-    @Autowired
-    private TraineeRepository traineeRepository;
-
+    TraineeRepository traineeRepository;
     @Autowired
     Gson gson;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    MemberRepository memberRepository;
 
-    void beforeEach() throws Exception {
-        SignupDtoRequest signupDtoRequest = SignupDtoRequest.builder()
-                .memberType("student")
-                .email("test@test.com")
-                .memberBelong("Kumoh")
-                .name("test")
-                .password("1234")
-                .build();
-        String json = gson.toJson(signupDtoRequest);
-        mockMvc.perform(post("/auth/member").contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isCreated());
-        LoginDtoRequest login = LoginDtoRequest.builder()
-                .email("test@test.com")
-                .password("1234")
-                .build();
-        String loginString = gson.toJson(login);
-        MockHttpServletResponse data = mockMvc.perform(post("/auth").contentType(MediaType.APPLICATION_JSON).content(loginString)).andExpect(status().isOk())
-                .andReturn().getResponse();
-        HashMap<String,List<LinkedTreeMap<String,String>>> jsonMap =  gson.fromJson(data.getContentAsString(), HashMap.class);
-        bearerToken = "Bearer "+jsonMap.get("data").get(0).get("token");
-    }
-    String login() throws Exception {
-        LoginDtoRequest login = LoginDtoRequest.builder()
-                .email("test@test.com")
-                .password("1234")
-                .build();
-        String loginString = gson.toJson(login);
-        MockHttpServletResponse data = mockMvc.perform(post("/auth").contentType(MediaType.APPLICATION_JSON).content(loginString)).andExpect(status().isOk())
-                .andReturn().getResponse();
-        HashMap<String,List<LinkedTreeMap<String,String>>> jsonMap =  gson.fromJson(data.getContentAsString(), HashMap.class);
-        return "Bearer "+jsonMap.get("data").get(0).get("token");
-    }
+    @Autowired
+    TokenProvider tokenProvider;
+    @Autowired
+    MemberService memberService;
 
+    ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    FileEntityRepository fileEntityRepository;
+    @Autowired
+    ApplicantRepository applicantRepository;
+    @Autowired
+    TraineeService traineeService;
+
+    @AfterEach
+    void afterEach() {
+        traineeRepository.deleteAll();
+        applicantRepository.deleteAll();
+        fileEntityRepository.deleteAll();
+        memberRepository.deleteAll();
+    }
 
     @Test
+    @WithAccount("test@test.com")
     @DisplayName("지원서 입력 테스트")
-    @Order(1)
-    void apply() throws Exception {
-        beforeEach();
+    void others() throws Exception {
         Map<String,String> map = new HashMap<>();
         map.put("name","song");
         map.put("major","com");
@@ -139,32 +104,15 @@ class ApplicationControllerTest {
                 MockMvcRequestBuilders.multipart("/application/submit")
                         .file(file)
                         .file(dto)
-                        .header("Authorization",bearerToken)
         ).andExpect(status().isCreated());
     }
-    @Test
-    @Order(2)
-    @DisplayName("지원서 ZIP 다운로드 실패 테스트")
-    void adminZipDownloadTestFailed() {
-        try {
-            mockMvc.perform(MockMvcRequestBuilders.get("/application/file")
-                    .header("Authorization", login())
-            ).andExpect(status().isUnauthorized());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    @Test
-    @Order(3)
-    @DisplayName("지원서 ZIP 다운로드 성공 테스트")
-    void adminZipDownloadTest() {
-        try {
-            Member member = memberRepository.findByEmail("test@test.com");
-            member.setAdmin(true);
-            memberRepository.save(member);
 
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("지원서 ZIP 다운로드 성공 테스트")
+    void test2() {
+        try {
             MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/application/file")
-                    .header("Authorization", login())
             ).andExpect(status().isOk()).andReturn();
             assertAll(
                     ()->assertThat(result.getResponse().getContentType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM_VALUE),
@@ -174,97 +122,103 @@ class ApplicationControllerTest {
             e.printStackTrace();
         }
     }
-    @Test
-    @Order(4)
-    @DisplayName("관리자 지원자 선택 테스트")
-    void adminSelection() throws Exception {
-        /**
-         * ADMIN 권한 부여
-         */
-        Member member = memberRepository.findByEmail("test@test.com");
-        member.setAdmin(true);
-        memberRepository.save(member);
 
-        /**
-         * dto 생성
-         */
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("지원서 ZIP 다운로드 실패 테스트")
+    void test3() {
+        try {
+            Member member = memberRepository.findByEmail("test@test.com");
+            member.setAdmin(false);
+            memberRepository.save(member);
+
+            mockMvc.perform(MockMvcRequestBuilders.get("/application/file")).andExpect(status().isUnauthorized());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("관리자 지원자 선택 테스트")
+    void test4() throws Exception {
+        others();
         List<String> emails = new ArrayList<>();
         emails.add("test@test.com");
         ApplicationDto.SelectionRequestDto dto = ApplicationDto.SelectionRequestDto.builder().emails(emails).build();
 
-        /**
-         * 테스트 수행, 정상 수행 결과 : 204(noContent), applicant.isAdminApply == true
-         */
         mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection")
-                .header("Authorization",login())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(gson.toJson(dto))).andExpect(status().isNoContent());
 
-        Applicant applicant = applicantRepository.findByMemberId(member.getId());
+        Applicant applicant = memberRepository.findByEmail("test@test.com").getApplicant();
         assertAll(
                 ()->assertThat(applicant.isAdminApply()).isEqualTo(true)
         );
     }
-
     @Test
     @DisplayName("지원자 교육 최종결정 테스트")
-    @Order(5)
     @Transactional
+    @WithAccount("test@test.com")
     void selectionConfirmation() throws Exception {
-        Member member = memberRepository.findByEmail("test@test.com");
-        member.setAdmin(true);
-        memberRepository.save(member);
-
-        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation").header("Authorization",login()))
+        test4();
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation"))
                 .andExpect(status().isNoContent());
-        mockMvc.perform(post("/trainee").header("Authorization", login()))
+        mockMvc.perform(post("/trainee"))
                 .andExpect(status().isCreated()).andReturn();
 
-        Applicant applicant = traineeRepository.findById(1).getApplicant();
+        //Applicant applicant = traineeRepository.findById(1).getApplicant();
+        Applicant applicant = traineeRepository.findAll().get(0).getApplicant();
         assertAll(
                 ()->assertThat(applicant.getName()).isEqualTo("song"),
                 ()->assertThat(applicant.getMajor()).isEqualTo("com"),
                 ()->assertThat(applicant.getSchool()).isEqualTo("string")
         );
     }
-    @Test
-    @DisplayName("지원자 목록 출력")
-    @Order(6)
-    void viewList() throws Exception {
-        Member member = memberRepository.findByEmail("test@test.com");
-        member.setAdmin(true);
-        memberRepository.save(member);
 
+    @Test
+    @DisplayName("지원자 목록 출력 테스트")
+    @WithAccount("test@test.com")
+    void viewList() throws Exception {
+        others();
         MultiValueMap<String,String> params = new LinkedMultiValueMap<>();
         params.add("year","2023");
         params.add("school","string");
         params.add("major","com");
 
-        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()).params(params))
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders.get("/application").params(params))
                 .andExpect(status().isOk()).andReturn();
-        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()))
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.get("/application"))
                 .andExpect(status().isOk()).andReturn();
         params.remove("year");
-        MvcResult result3 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()).params(params))
+        MvcResult result3 = mockMvc.perform(MockMvcRequestBuilders.get("/application"))
                 .andExpect(status().isOk()).andReturn();
         params.remove("school");
-        MvcResult result4 = mockMvc.perform(MockMvcRequestBuilders.get("/application").header("Authorization", login()).params(params))
+        MvcResult result4 = mockMvc.perform(MockMvcRequestBuilders.get("/application").params(params))
                 .andExpect(status().isOk()).andReturn();
         System.out.println(result1.getResponse().getContentAsString());
     }
-
     @Test
     @DisplayName("지원자 검색")
-    @Order(7)
+    @WithAccount("test@test.com")
     void viewApplicant() throws Exception {
-        Member member = memberRepository.findByEmail("test@test.com");
-        member.setAdmin(true);
-        memberRepository.save(member);
+        others();
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/application/test@test.com")
-                .header("Authorization",login())).andExpect(status().isOk()).andReturn();
-
-        System.out.println(result.getResponse().getContentAsString());
-
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/application/test@test.com")).
+                andExpect(status().isOk()).andDo(print());
     }
+
+    @Test
+    @DisplayName("교육생 목록")
+    @WithAccount("test@test.com")
+    @Transactional
+    void viewTrainees() throws Exception {
+        selectionConfirmation();
+        //List<Trainee> trainees = traineeService.searchTrainee(null, null, null);
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/trainee")
+        ).andExpect(status().isOk()).andDo(print());
+    }
+
 }

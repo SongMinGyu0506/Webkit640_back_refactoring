@@ -1,6 +1,7 @@
 package com.webkit640.backend.controller;
 
 
+import com.webkit640.backend.config.annotation.Admin;
 import com.webkit640.backend.dto.TraineeDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Trainee;
@@ -9,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -38,5 +37,18 @@ public class TraineeController {
                         ResponseWrapper.addObject(
                                 TraineeDto.SaveTraineeResponseDto.entityToDto(trainee), HttpStatus.CREATED)
                 );
+    }
+    @Admin
+    @GetMapping("")
+    public ResponseEntity<?> searchTrainee(
+            @AuthenticationPrincipal int id,
+            @RequestParam(required = false) String cardinal,
+            @RequestParam(required = false) String school,
+            @RequestParam(required = false) String major) {
+
+        return ResponseEntity.ok().body(
+                ResponseWrapper.addObject(TraineeDto.TraineeListResponseDto.entitiesToDto(
+                        traineeService.searchTrainee(cardinal,school,major)),HttpStatus.OK)
+        );
     }
 }
