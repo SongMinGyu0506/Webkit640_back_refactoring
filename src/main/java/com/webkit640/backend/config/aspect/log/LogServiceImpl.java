@@ -35,7 +35,11 @@ public class LogServiceImpl implements LogService{
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
         RequestMapping requestMapping = cls.getAnnotation(RequestMapping.class);
+        if (requestMapping == null) {
+            return "TEST CODE";
+        }
         String baseUrl = requestMapping.value()[0];
+
 
         return Stream.of(GetMapping.class, PutMapping.class, PostMapping.class
                         , PatchMapping.class,DeleteMapping.class,RequestMapping.class)
