@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,6 +35,33 @@ public class TraineeDto {
                     .school(trainee.getApplicant().getSchool())
                     .cardinal(trainee.getCardinal())
                     .build();
+        }
+    }
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TraineeListResponseDto {
+        private String email;
+        private String name;
+        private String school;
+        private String major;
+        private String grade;
+        private String cardinal;
+
+        public static List<TraineeListResponseDto> entitiesToDto(List<Trainee> entities) {
+            List<TraineeListResponseDto> result = new ArrayList<>();
+            entities.forEach(entity -> result.add(
+                    TraineeListResponseDto.builder()
+                            .email(entity.getApplicant().getMember().getEmail())
+                            .name(entity.getApplicant().getName())
+                            .school(entity.getApplicant().getSchool())
+                            .major(entity.getApplicant().getMajor())
+                            .grade(entity.getApplicant().getSchoolYear())
+                            .cardinal(entity.getCardinal())
+                            .build()
+            ));
+            return result;
         }
     }
 }
