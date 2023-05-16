@@ -95,8 +95,8 @@ public class ApplicationController {
     }
 
     @PatchMapping("/selection/confirmation")
-    public ResponseEntity<?> selectionConfirmation(@AuthenticationPrincipal int id) {
-        applicationService.selectionConfirmation(id);
+    public ResponseEntity<?> selectionConfirmation(@AuthenticationPrincipal int id, @RequestParam String email) {
+        applicationService.selectionConfirmation(email);
         return ResponseEntity.noContent().build();
     }
 

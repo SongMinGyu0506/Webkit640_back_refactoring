@@ -52,6 +52,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public void adminSelection(List<String> emails) {
+        if (emails == null) {
+            throw new NotFoundDataException("이메일리스트 데이터가 없습니다.");
+        }
         emails.stream().forEach(email -> {
             Member member = memberRepository.findByEmail(email);
             if (member == null) {
@@ -64,13 +67,18 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public void selectionConfirmation(int id) {
-        Applicant byMemberId = applicantRepository.findByMemberId(id);
-        if (byMemberId == null) {
-            throw new NotFoundDataException("Not Applicant");
+    public void selectionConfirmation(String email) {
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            throw new NotFoundDataException("등록된 사용자가 아님 "+email);
+        } else {
+            Applicant byMemberId = member.getApplicant();
+            if (byMemberId == null) {
+                throw new NotFoundDataException("등록된 지원자가 아님"+email);
+            }
+            byMemberId.setSelect(!byMemberId.isSelect());
+            applicantRepository.save(byMemberId);
         }
-        byMemberId.setSelect(!byMemberId.isSelect());
-        applicantRepository.save(byMemberId);
     }
 
     @Override

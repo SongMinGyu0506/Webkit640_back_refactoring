@@ -13,7 +13,7 @@ public interface ApplicationService {
 
     void adminSelection(List<String> emails);
 
-    void selectionConfirmation(int id);
+    void selectionConfirmation(String email);
     List<Applicant> getApplicantList(String year, String school, String major);
     List<Applicant> getApplicantList(String email);
 }

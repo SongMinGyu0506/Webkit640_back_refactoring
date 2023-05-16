@@ -109,11 +109,44 @@ public class ApplicationControllerTest {
 
     @Test
     @WithAccount("test@test.com")
+    @DisplayName("지원서 개별 다운로드 성공 테스트")
+    void successDownloadApplication() throws Exception {
+        others();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/application/file/test@test.com")).
+                andExpect(status().isOk()).
+                andDo(print()).
+                andReturn();
+
+        assertAll(
+                ()->assertThat(result.getResponse().getContentType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM_VALUE),
+                ()->assertThat(result.getResponse().getHeader(HttpHeaders.CONTENT_DISPOSITION)).contains("attachment")
+        );
+    }
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("지원서 개별 다운로드 실패 테스트")
+    void failedDownloadApplication() throws Exception {
+        others();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/application/file/test12343@test.com")).
+                andExpect(status().isInternalServerError()).
+                andDo(print()).
+                andReturn();
+
+        assertAll(
+                ()->assertThat(result.getResponse().getContentType()).isEqualTo("application/json"),
+                ()->assertThat(result.getResponse().getHeader(HttpHeaders.CONTENT_DISPOSITION)).contains("f.txt")
+        );
+    }
+
+    @Test
+    @WithAccount("test@test.com")
     @DisplayName("지원서 ZIP 다운로드 성공 테스트")
     void test2() {
         try {
             MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/application/file")
-            ).andExpect(status().isOk()).andReturn();
+            ).andExpect(status().isOk()).andDo(print()).andReturn();
             assertAll(
                     ()->assertThat(result.getResponse().getContentType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM_VALUE),
                     ()->assertThat(result.getResponse().getHeader(HttpHeaders.CONTENT_DISPOSITION)).contains("attachment")
@@ -132,7 +165,7 @@ public class ApplicationControllerTest {
             member.setAdmin(false);
             memberRepository.save(member);
 
-            mockMvc.perform(MockMvcRequestBuilders.get("/application/file")).andExpect(status().isUnauthorized());
+            mockMvc.perform(MockMvcRequestBuilders.get("/application/file")).andExpect(status().isUnauthorized()).andDo(print());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -149,23 +182,51 @@ public class ApplicationControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(gson.toJson(dto))).andExpect(status().isNoContent());
+                .content(gson.toJson(dto))).andDo(print()).andExpect(status().isNoContent());
 
         Applicant applicant = memberRepository.findByEmail("test@test.com").getApplicant();
         assertAll(
                 ()->assertThat(applicant.isAdminApply()).isEqualTo(true)
         );
     }
+
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("관리자 지원자 선택 실패(해당이메일 없음) 테스트")
+    void test4Failed1() throws Exception {
+        others();
+        List<String> emails = new ArrayList<>();
+        emails.add("test1234@test.com");
+        ApplicationDto.SelectionRequestDto dto = ApplicationDto.SelectionRequestDto.builder().emails(emails).build();
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(dto))).andDo(print()).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("관리자 지원자 선택 실패(Null List) 테스트")
+    void test4Failed2() throws Exception {
+        others();
+        List<String> emails = null;
+        ApplicationDto.SelectionRequestDto dto = ApplicationDto.SelectionRequestDto.builder().emails(emails).build();
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(dto))).andDo(print()).andExpect(status().isBadRequest());
+    }
+
     @Test
     @DisplayName("지원자 교육 최종결정 테스트")
     @Transactional
     @WithAccount("test@test.com")
     void selectionConfirmation() throws Exception {
         test4();
-        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation"))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation?email=test@test.com"))
+                .andExpect(status().isNoContent()).andDo(print());
         mockMvc.perform(post("/trainee"))
-                .andExpect(status().isCreated()).andReturn();
+                .andExpect(status().isCreated()).andDo(print()).andReturn();
 
         //Applicant applicant = traineeRepository.findById(1).getApplicant();
         Applicant applicant = traineeRepository.findAll().get(0).getApplicant();
@@ -174,6 +235,25 @@ public class ApplicationControllerTest {
                 ()->assertThat(applicant.getMajor()).isEqualTo("com"),
                 ()->assertThat(applicant.getSchool()).isEqualTo("string")
         );
+    }
+    @Test
+    @DisplayName("지원자 교육 최종결정 실패(미등록 사용자) 테스트")
+    @Transactional
+    @WithAccount("test@test.com")
+    void selectionConfirmationFailed() throws Exception {
+        test4();
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation?email=test1234@test.com"))
+                .andExpect(status().isBadRequest()).andDo(print());
+    }
+
+    @Test
+    @DisplayName("지원자 교육 최종결정 실패(미등록 지원자) 테스트")
+    @Transactional
+    @WithAccount("test@test.com")
+    void selectionConfirmationFailed2() throws Exception {
+        //test4();
+        mockMvc.perform(MockMvcRequestBuilders.patch("/application/selection/confirmation?email=test@test.com"))
+                .andExpect(status().isBadRequest()).andDo(print());
     }
 
     @Test
@@ -187,7 +267,7 @@ public class ApplicationControllerTest {
         params.add("major","com");
 
         MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders.get("/application").params(params))
-                .andExpect(status().isOk()).andReturn();
+                .andExpect(status().isOk()).andDo(print()).andReturn();
         MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.get("/application"))
                 .andExpect(status().isOk()).andReturn();
         params.remove("year");
@@ -198,6 +278,20 @@ public class ApplicationControllerTest {
                 .andExpect(status().isOk()).andReturn();
         System.out.println(result1.getResponse().getContentAsString());
     }
+
+    @Test
+    @DisplayName("지원자 목록 출력 실패 테스트")
+    void viewListFailed() throws Exception {
+        //others();
+        MultiValueMap<String,String> params = new LinkedMultiValueMap<>();
+        params.add("year","2023");
+        params.add("school","string");
+        params.add("major","com");
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders.get("/application").params(params))
+                .andExpect(status().isInternalServerError()).andDo(print()).andReturn();
+    }
+
     @Test
     @DisplayName("지원자 검색")
     @WithAccount("test@test.com")

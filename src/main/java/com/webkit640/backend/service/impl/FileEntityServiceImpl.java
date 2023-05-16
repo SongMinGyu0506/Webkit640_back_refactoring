@@ -107,8 +107,8 @@ public class FileEntityServiceImpl implements FileEntityService {
         if (!memberRepository.findById(id).isAdmin()) {
             throw new NoAdminException("관리자가 아닙니다.");
         }
-        FileEntity file = fileEntityRepository.findByMemberId(memberRepository.findByEmail(email).getId());
         try {
+            FileEntity file = fileEntityRepository.findByMemberId(memberRepository.findByEmail(email).getId());
             result.put("resource",resourceLoader.getResource("file:"+file.getFilePath()+file.getFileName()));
             result.put("file",resourceLoader.getResource("file:"+file.getFilePath()+file.getFileName()).getFile());
             result.put("fileName",file.getFileName());
