@@ -46,7 +46,7 @@ public class Board extends DateAudit {
     private int cnt;
 
     @JsonIgnore
-    @NotNull
+    //@NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writerId")
     private Member member;

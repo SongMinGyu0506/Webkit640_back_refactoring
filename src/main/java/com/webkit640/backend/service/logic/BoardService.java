@@ -8,7 +8,7 @@ import java.util.List;
 
 @Component
 public interface BoardService {
-    Board create(String type, Board board);
+    Board createBoard(Board board,int memberId);
     List<Board> boardRead(String type, String title, String author);
     Board boardRead(int id);
     Board boardUpdate(int id, HashMap<String,String> updateData);
