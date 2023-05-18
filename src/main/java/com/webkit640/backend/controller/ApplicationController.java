@@ -61,10 +61,10 @@ public class ApplicationController {
     @GetMapping("/file/{email}")
     public ResponseEntity<?> adminDownloadApplication(@AuthenticationPrincipal int id, @PathVariable String email) {
         Map<String, Object> map = fileEntityService.applicationDownload(id, email);
-
+        String name = (String) map.get("fileName");
         File file = (File) map.get("file");
         Resource resource = (Resource) map.get("resource");
-        String fileName = new String(file.getName().getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        String fileName = new String(name.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName +"\";")
