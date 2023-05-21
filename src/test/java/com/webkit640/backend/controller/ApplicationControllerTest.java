@@ -7,10 +7,13 @@ import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.dto.ApplicationDto;
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Member;
-import com.webkit640.backend.entity.Trainee;
-import com.webkit640.backend.repository.*;
+import com.webkit640.backend.repository.repository.ApplicantRepository;
+import com.webkit640.backend.repository.repository.FileEntityRepository;
+import com.webkit640.backend.repository.repository.MemberRepository;
+import com.webkit640.backend.repository.repository.TraineeRepository;
 import com.webkit640.backend.service.logic.MemberService;
 import com.webkit640.backend.service.logic.TraineeService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -104,7 +107,7 @@ public class ApplicationControllerTest {
                 MockMvcRequestBuilders.multipart("/application/submit")
                         .file(file)
                         .file(dto)
-        ).andExpect(status().isCreated());
+        ).andExpect(status().isCreated()).andDo(print());
     }
 
     @Test
@@ -314,5 +317,8 @@ public class ApplicationControllerTest {
                 MockMvcRequestBuilders.get("/trainee")
         ).andExpect(status().isOk()).andDo(print());
     }
-
+    @Test
+    void other() {
+        System.out.println(RandomStringUtils.randomAlphanumeric(13));
+    }
 }
