@@ -1,4 +1,4 @@
-package com.webkit640.backend.repository;
+package com.webkit640.backend.repository.repository;
 
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Trainee;

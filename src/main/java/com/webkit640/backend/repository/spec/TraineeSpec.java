@@ -1,4 +1,4 @@
-package com.webkit640.backend.repository;
+package com.webkit640.backend.repository.spec;
 
 import com.webkit640.backend.entity.Trainee;
 import org.springframework.data.jpa.domain.Specification;
