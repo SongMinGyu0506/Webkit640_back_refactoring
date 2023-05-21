@@ -2,10 +2,9 @@ package com.webkit640.backend.service.impl;
 
 import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Trainee;
-import com.webkit640.backend.repository.ApplicantRepository;
-import com.webkit640.backend.repository.TraineeRepository;
-import com.webkit640.backend.repository.TraineeSpec;
-import com.webkit640.backend.service.logic.ApplicationService;
+import com.webkit640.backend.repository.repository.ApplicantRepository;
+import com.webkit640.backend.repository.repository.TraineeRepository;
+import com.webkit640.backend.repository.spec.TraineeSpec;
 import com.webkit640.backend.service.logic.TraineeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
