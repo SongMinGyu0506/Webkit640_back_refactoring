@@ -42,7 +42,7 @@ public class BoardController {
      */
     @GetMapping("/{boardId}")
     public ResponseEntity<?> getBoard(@AuthenticationPrincipal int id, @PathVariable int boardId) {
-        return ResponseEntity.ok().body(ResponseWrapper.addObject(null,HttpStatus.OK));
+        return ResponseEntity.ok().body(ResponseWrapper.addObject(BoardDto.ListResponseDto.entityToDto(boardService.boardRead(boardId)),HttpStatus.OK));
     }
 
 
@@ -53,8 +53,16 @@ public class BoardController {
      * HTTP STATUS: 200
      */
     @GetMapping("")
-    public ResponseEntity<?> getListBoard(@AuthenticationPrincipal int id) {
-        return ResponseEntity.ok().body(ResponseWrapper.addObject(null,HttpStatus.OK));
+    public ResponseEntity<?> getListBoard(@AuthenticationPrincipal int id,
+                                          @RequestParam String type,
+                                          @RequestParam(required = false) String author,
+                                          @RequestParam(required = false) String title
+    ) {
+        return ResponseEntity.ok().body(
+                ResponseWrapper.addObject(
+                        BoardDto.ListResponseDto.entityToDto(boardService.boardRead(type, title, author)
+                        ),
+                        HttpStatus.OK));
     }
 
     /**
@@ -68,7 +76,6 @@ public class BoardController {
     @PostMapping("")
     public ResponseEntity<?> createBoard(@AuthenticationPrincipal int id, @RequestPart(required = false) List<MultipartFile> files, @RequestPart BoardDto.CreateBoardDto dto) {
         Board board = boardService.createBoard(BoardDto.CreateBoardDto.dtoToEntity(dto),id);
-        log.info(String.valueOf(board.getId()));
         List<FileEntity> fileEntities = fileEntityService.saveBoardFile(files, board.getId(), id);
 
         return ResponseEntity.
@@ -85,7 +92,15 @@ public class BoardController {
      * @return 204 NO CONTENT로 반환
      */
     @PatchMapping("/{boardId}")
-    public ResponseEntity<?> updateBoard(@AuthenticationPrincipal int id, @PathVariable int boardId, @RequestBody BoardDto dto) {
+    public ResponseEntity<?> updateBoard(@AuthenticationPrincipal int id,
+                                         @PathVariable int boardId,
+                                         @RequestPart(required = false) List<MultipartFile> files,
+                                         @RequestPart BoardDto.CreateBoardDto dto)
+    {
+        if (files != null) {
+            fileEntityService.saveBoardFile(files, boardId, id);
+        }
+        boardService.boardUpdate(boardId,BoardDto.CreateBoardDto.dtoToEntity(dto));
         return ResponseEntity.noContent().build();
     }
 }

@@ -11,7 +11,7 @@ public interface BoardService {
     Board createBoard(Board board,int memberId);
     List<Board> boardRead(String type, String title, String author);
     Board boardRead(int id);
-    Board boardUpdate(int id, HashMap<String,String> updateData);
+    Board boardUpdate(int id, Board updateBoard);
     Board boardDelete(int id);
     List<Board> replyRead(int id);
 

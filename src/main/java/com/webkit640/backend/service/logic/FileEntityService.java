@@ -20,4 +20,6 @@ public interface FileEntityService {
     List<FileEntity> saveBoardFile(List<MultipartFile> files, int boardId, int member);
     List<FileEntity> findByBoardId(Board board);
     String saveImage(MultipartFile file);
+
+    void updateBoardFiles(int boardId, List<MultipartFile> files);
 }

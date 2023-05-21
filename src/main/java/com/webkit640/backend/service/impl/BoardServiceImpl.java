@@ -2,14 +2,15 @@ package com.webkit640.backend.service.impl;
 
 import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.entity.Member;
-import com.webkit640.backend.repository.BoardRepository;
-import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.repository.repository.BoardRepository;
+import com.webkit640.backend.repository.repository.MemberRepository;
+import com.webkit640.backend.repository.spec.BoardSpec;
 import com.webkit640.backend.service.logic.BoardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -37,17 +38,29 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public List<Board> boardRead(String type, String title, String author) {
-        return null;
+        Specification<Board> spec = (root,query,criteriaBuilder) -> null;
+        spec = spec.and(BoardSpec.equalType(type));
+        if (title != null) {
+            spec = spec.and(BoardSpec.likeTitle(title));
+        } else if (author != null) {
+            spec = spec.and(BoardSpec.equalAuthor(author));
+        }
+        return boardRepository.findAll(spec);
     }
 
     @Override
     public Board boardRead(int id) {
-        return null;
+        return boardRepository.findById(id);
     }
 
     @Override
-    public Board boardUpdate(int id, HashMap<String, String> updateData) {
-        return null;
+    public Board boardUpdate(int id, Board updateData) {
+        Board board = boardRepository.findById(id);
+        board.setBoardType(updateData.getBoardType());
+        board.setContent(updateData.getContent());
+        board.setTitle(updateData.getTitle());
+        boardRepository.save(board);
+        return board;
     }
 
     @Override

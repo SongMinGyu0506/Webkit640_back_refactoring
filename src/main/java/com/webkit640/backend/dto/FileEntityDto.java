@@ -39,4 +39,29 @@ public class FileEntityDto {
             return result;
         }
     }
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BoardResponseDto {
+        private int fileId;
+        private String fileName;
+        private String fileExtension;
+        private String filePath;
+        private String fileType;
+
+        public static List<BoardResponseDto> entityToDto(List<FileEntity> files) {
+            List<BoardResponseDto> result = new ArrayList<>();
+            files.forEach(file -> result.add(
+                    BoardResponseDto.builder()
+                            .fileExtension(file.getFileExtension())
+                            .fileName(file.getFileName())
+                            .filePath(file.getFilePath())
+                            .fileType(file.getFileType())
+                            .fileId(file.getId())
+                            .build()
+            ));
+            return result;
+        }
+    }
 }

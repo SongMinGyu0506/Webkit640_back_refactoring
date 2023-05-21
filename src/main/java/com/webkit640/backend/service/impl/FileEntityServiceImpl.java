@@ -7,9 +7,9 @@ import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.entity.Member;
-import com.webkit640.backend.repository.BoardRepository;
-import com.webkit640.backend.repository.FileEntityRepository;
-import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.repository.repository.BoardRepository;
+import com.webkit640.backend.repository.repository.FileEntityRepository;
+import com.webkit640.backend.repository.repository.MemberRepository;
 import com.webkit640.backend.service.logic.FileEntityService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -21,6 +21,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -155,6 +156,7 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
+    @Transactional
     public List<FileEntity> saveBoardFile(List<MultipartFile> files, int boardId, int memberId) {
         File folder = new File(fileDir+"board");
         if (!folder.exists()) {
@@ -196,6 +198,9 @@ public class FileEntityServiceImpl implements FileEntityService {
         });
         log.info(String.valueOf(boardId));
         Board board1 = boardRepository.findById(boardId);
+        if (board1.getFiles() != null) {
+            fileEntityRepository.deleteByBoardId(boardId);
+        }
         board1.setFiles(resultFileEntity);
 //        board.setFiles(resultFileEntity);
 //        boardRepository.save(board);
@@ -210,5 +215,9 @@ public class FileEntityServiceImpl implements FileEntityService {
     @Override
     public String saveImage(MultipartFile file) {
         return null;
+    }
+
+    @Override
+    public void updateBoardFiles(int boardId, List<MultipartFile> files) {
     }
 }
