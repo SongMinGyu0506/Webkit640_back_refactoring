@@ -117,4 +117,11 @@ public class BoardController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{boardId}")
+    public ResponseEntity<?> createComment(@AuthenticationPrincipal int id, @RequestBody BoardDto.CommentDto dto, @PathVariable int boardId) {
+        Board comment = boardService.createComment(BoardDto.CommentDto.dtoToEntity(dto), boardId, id);
+        return ResponseEntity.created(
+                ServletUriComponentsBuilder.fromCurrentRequest().path("{id}").buildAndExpand(comment.getId()
+                ).toUri()).body(ResponseWrapper.addObject(comment,HttpStatus.CREATED));
+    }
 }

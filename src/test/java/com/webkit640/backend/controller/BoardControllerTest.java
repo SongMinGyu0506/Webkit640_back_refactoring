@@ -2,7 +2,9 @@ package com.webkit640.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webkit640.backend.dto.BoardDto;
 import com.webkit640.backend.entity.Board;
+import com.webkit640.backend.repository.repository.BoardRepository;
 import com.webkit640.backend.repository.repository.FileEntityRepository;
 import com.webkit640.backend.service.logic.BoardService;
 import org.junit.jupiter.api.*;
@@ -51,6 +53,8 @@ class BoardControllerTest {
 
     @Autowired
     FileEntityRepository fileEntityRepository;
+    @Autowired
+    BoardRepository boardRepository;
 
     int counter;
     @AfterEach
@@ -153,5 +157,34 @@ class BoardControllerTest {
         assertAll(
                 ()->assertThat(boardService.boardRead("TEST", null, null).size()).isEqualTo(0)
         );
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    void createComment() throws Exception{
+        createBoard();
+        BoardDto.CommentDto dto = BoardDto.CommentDto.builder()
+                .comment("test comment1")
+                .boardId(1)
+                .build();
+        BoardDto.CommentDto dtos = BoardDto.CommentDto.builder()
+                .comment("test comment2")
+                .boardId(1)
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/board/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated()).andDo(print());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/board/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dtos)))
+                .andExpect(status().isCreated()).andDo(print());
+
+        List<Board> boards = boardRepository.findById(1).getBoards();
+        boards.forEach(comment -> assertAll(
+                ()->assertThat(comment.getContent()).contains("test comment")
+        ));
     }
 }

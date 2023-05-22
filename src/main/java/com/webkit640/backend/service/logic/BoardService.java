@@ -15,5 +15,5 @@ public interface BoardService {
     void boardDelete(int id);
     List<Board> replyRead(int id);
     void checkBoardUser(int memberId, int boardId);
-
+    Board createComment(Board board,int boardId, int memberId);
 }

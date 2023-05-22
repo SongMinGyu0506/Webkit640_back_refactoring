@@ -85,4 +85,20 @@ public class BoardServiceImpl implements BoardService {
             throw new NoAuthenticationUserException("게시글의 작성자가 아닙니다.");
         }
     }
+
+    @Override
+    public Board createComment(Board board, int boardId, int memberId) {
+        Board originalBoard = boardRepository.findById(boardId);
+
+        board.setBoard(originalBoard);
+        board.setMember(memberRepository.findById(memberId));
+        boardRepository.save(board);
+
+        List<Board> comments = originalBoard.getBoards();
+        comments.add(board);
+        originalBoard.setBoards(comments);
+        boardRepository.save(originalBoard);
+
+        return board;
+    }
 }
