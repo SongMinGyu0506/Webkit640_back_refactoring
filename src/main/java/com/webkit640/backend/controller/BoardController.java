@@ -21,7 +21,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/board")
 @Slf4j
-//TODO: 아직 비즈니스로직 적용안함
 public class BoardController {
     private final BoardService boardService;
     private final FileEntityService fileEntityService;
@@ -97,10 +96,25 @@ public class BoardController {
                                          @RequestPart(required = false) List<MultipartFile> files,
                                          @RequestPart BoardDto.CreateBoardDto dto)
     {
+        boardService.checkBoardUser(id,boardId);
         if (files != null) {
             fileEntityService.saveBoardFile(files, boardId, id);
         }
         boardService.boardUpdate(boardId,BoardDto.CreateBoardDto.dtoToEntity(dto));
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     *
+     * @param id 로그인한 사용자
+     * @param boardId 게시글 번호
+     * @return 204 NO CONTENT로 반환
+     */
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<?> deleteBoard(@AuthenticationPrincipal int id, @PathVariable int boardId) {
+        boardService.checkBoardUser(id,boardId);
+        boardService.boardDelete(boardId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

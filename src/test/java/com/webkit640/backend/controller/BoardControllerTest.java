@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -142,5 +143,15 @@ class BoardControllerTest {
         );
         mockMvc.perform(multipart(HttpMethod.PATCH,"/board/1").file(files1).file(files2).file(dto)).andExpect(status().isNoContent()).andDo(print());
         fileEntityRepository.findByBoardId(1).forEach(file -> System.out.println(file.getFileName()));
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    void deleteBoard() throws Exception {
+        createBoard();
+        mockMvc.perform(MockMvcRequestBuilders.delete("/board/1")).andExpect(status().isNoContent()).andDo(print());
+        assertAll(
+                ()->assertThat(boardService.boardRead("TEST", null, null).size()).isEqualTo(0)
+        );
     }
 }

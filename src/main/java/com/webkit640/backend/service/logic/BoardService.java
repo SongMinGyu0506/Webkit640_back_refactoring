@@ -12,7 +12,8 @@ public interface BoardService {
     List<Board> boardRead(String type, String title, String author);
     Board boardRead(int id);
     Board boardUpdate(int id, Board updateBoard);
-    Board boardDelete(int id);
+    void boardDelete(int id);
     List<Board> replyRead(int id);
+    void checkBoardUser(int memberId, int boardId);
 
 }

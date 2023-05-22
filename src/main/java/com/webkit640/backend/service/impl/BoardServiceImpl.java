@@ -1,8 +1,10 @@
 package com.webkit640.backend.service.impl;
 
+import com.webkit640.backend.config.exception.NoAuthenticationUserException;
 import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.repository.BoardRepository;
+import com.webkit640.backend.repository.repository.FileEntityRepository;
 import com.webkit640.backend.repository.repository.MemberRepository;
 import com.webkit640.backend.repository.spec.BoardSpec;
 import com.webkit640.backend.service.logic.BoardService;
@@ -18,11 +20,13 @@ import java.util.List;
 public class BoardServiceImpl implements BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
+    private final FileEntityRepository fileEntityRepository;
 
     @Autowired
-    public BoardServiceImpl(BoardRepository boardRepository, MemberRepository memberRepository) {
+    public BoardServiceImpl(BoardRepository boardRepository, MemberRepository memberRepository, FileEntityRepository fileEntityRepository) {
         this.boardRepository = boardRepository;
         this.memberRepository = memberRepository;
+        this.fileEntityRepository = fileEntityRepository;
     }
 
     @Override
@@ -64,12 +68,21 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public Board boardDelete(int id) {
-        return null;
+    public void boardDelete(int id) {
+        fileEntityRepository.deleteByBoardId(id);
+        boardRepository.deleteById(id);
     }
 
     @Override
     public List<Board> replyRead(int id) {
         return null;
+    }
+
+    @Override
+    public void checkBoardUser(int memberId, int boardId) {
+        Board board = boardRepository.findById(boardId);
+        if (memberId != board.getMember().getId()) {
+            throw new NoAuthenticationUserException("게시글의 작성자가 아닙니다.");
+        }
     }
 }
