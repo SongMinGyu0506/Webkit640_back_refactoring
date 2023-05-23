@@ -7,6 +7,7 @@ import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.repository.repository.BoardRepository;
 import com.webkit640.backend.repository.repository.FileEntityRepository;
 import com.webkit640.backend.service.logic.BoardService;
+import org.apache.tika.metadata.HttpHeaders;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +116,7 @@ class BoardControllerTest {
     }
     @Test
     @WithAccount("test@test.com")
+    @DisplayName("게시글 수정")
     void updateBoard() throws Exception {
         createBoard();
 
@@ -151,16 +153,18 @@ class BoardControllerTest {
 
     @Test
     @WithAccount("test@test.com")
+    @DisplayName("게시글 제거")
     void deleteBoard() throws Exception {
         createBoard();
         mockMvc.perform(MockMvcRequestBuilders.delete("/board/1")).andExpect(status().isNoContent()).andDo(print());
         assertAll(
-                ()->assertThat(boardService.boardRead("TEST", null, null).size()).isEqualTo(0)
+                ()->assertThat(boardService.boardRead("TEST", null, null,false).size()).isEqualTo(0)
         );
     }
 
     @Test
     @WithAccount("test@test.com")
+    @DisplayName("댓글 생성")
     void createComment() throws Exception{
         createBoard();
         BoardDto.CommentDto dto = BoardDto.CommentDto.builder()
@@ -182,9 +186,54 @@ class BoardControllerTest {
                         .content(objectMapper.writeValueAsString(dtos)))
                 .andExpect(status().isCreated()).andDo(print());
 
+
+
         List<Board> boards = boardRepository.findById(1).getBoards();
         boards.forEach(comment -> assertAll(
                 ()->assertThat(comment.getContent()).contains("test comment")
         ));
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("관리자 게시글 열람권한 변경")
+    void changeViewMode() throws Exception {
+        createBoard();
+        createComment();
+
+        List<Integer> raw = new ArrayList<>();
+        raw.add(1);
+        raw.add(2);
+        BoardDto.ListBoardId dto = BoardDto.ListBoardId.builder().boardId(raw).build();
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/board?type=TEST")).andExpect(status().isOk()).andDo(print());
+        mockMvc.perform(MockMvcRequestBuilders.patch("/board/auth").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNoContent()).andDo(print());
+        mockMvc.perform(MockMvcRequestBuilders.get("/board?type=TEST")).andExpect(status().isOk()).andDo(print());
+        mockMvc.perform(MockMvcRequestBuilders.get("/board/1")).andExpect(status().isOk()).andDo(print());
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("업로드 파일 다운로드 테스트")
+    void attachedFileDownload() throws Exception {
+        createBoard();
+        mockMvc.perform(MockMvcRequestBuilders.get("/board/download/1").contentType(MediaType.APPLICATION_OCTET_STREAM)).andExpect(status().isOk()).andDo(print());
+    }
+
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("댓글 수정 테스트")
+    void updateComment() throws Exception {
+        createComment();
+
+        BoardDto.CommentDto.CommentUpdateDto build = BoardDto.CommentDto.CommentUpdateDto.builder().comment("This is Update Comment!!!").build();
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .patch("/board/1/2").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(build)))
+                .andExpect(status().isNoContent()).andDo(print());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/board/1")).andExpect(status().isOk()).andDo(print());
+
     }
 }
