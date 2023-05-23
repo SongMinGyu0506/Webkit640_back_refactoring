@@ -13,4 +13,7 @@ public class BoardSpec {
     public static Specification<Board> likeTitle(String title) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("title"),"%"+title+"%");
     }
+    public static Specification<Board> equalIsAdd(boolean isAdd) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isAdd"),isAdd);
+    }
 }

@@ -21,6 +21,7 @@ public class FileEntityDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BoardCreateResponseDto {
+        private int id;
         private String fileName;
         private String fileExtension;
         private String filePath;
@@ -30,6 +31,7 @@ public class FileEntityDto {
             List<BoardCreateResponseDto> result = new ArrayList<>();
             files.forEach(file -> result.add(
                     BoardCreateResponseDto.builder()
+                            .id(file.getId())
                             .fileExtension(file.getFileExtension())
                             .fileName(file.getFileName())
                             .filePath(file.getFilePath())

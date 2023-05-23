@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -41,8 +42,19 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    public List<Board> boardRead(String type, String title, String author, boolean isAdd) {
+        Specification<Board> spec = (root,query,criteriaBuilder) -> null;
+        spec = spec.and(BoardSpec.equalIsAdd(isAdd));
+        return getBoards(type,title,author,spec);
+    }
+
+    @Override
     public List<Board> boardRead(String type, String title, String author) {
         Specification<Board> spec = (root,query,criteriaBuilder) -> null;
+        return getBoards(type, title, author, spec);
+    }
+
+    private List<Board> getBoards(String type, String title, String author, Specification<Board> spec) {
         spec = spec.and(BoardSpec.equalType(type));
         if (title != null) {
             spec = spec.and(BoardSpec.likeTitle(title));
@@ -100,5 +112,25 @@ public class BoardServiceImpl implements BoardService {
         boardRepository.save(originalBoard);
 
         return board;
+    }
+
+    @Override
+    public void changeViewMode(List<Integer> boardIds) {
+        boardIds.forEach(id -> {
+            Optional<Board> optionalBoard = boardRepository.findById(id);
+            Board board = null;
+            if (optionalBoard.isPresent()) {
+                board = optionalBoard.get();
+                board.setAdd(true);
+                boardRepository.save(board);
+            }
+        });
+    }
+
+    @Override
+    public void updateComment(String comment, int commentId) {
+        Board originalComment = boardRepository.findByBoardTypeAndId("COMMENT", commentId);
+        originalComment.setContent(comment);
+        boardRepository.save(originalComment);
     }
 }

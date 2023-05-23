@@ -16,6 +16,15 @@ import java.util.List;
 @AllArgsConstructor
 public class BoardDto {
     private String id;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ListBoardId {
+        private List<Integer> boardId;
+    }
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -68,6 +77,13 @@ public class BoardDto {
         private String comment;
         private String date;
 
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class CommentUpdateDto {
+            private String comment;
+        }
         public static List<CommentDto> entityToDto(List<Board> entities) {
             List<CommentDto> commentDtos = new ArrayList<>();
             entities.forEach(entity -> commentDtos.add(
@@ -123,6 +139,7 @@ public class BoardDto {
                     .title(entity.getTitle())
                     .author(entity.getMember().getName())
                     .date(entity.getCreateDate())
+                    .comments(CommentDto.entityToDto(entity.getBoards()))
                     .files(FileEntityDto.BoardResponseDto.entityToDto(entity.getFiles()))
                     .build();
         }

@@ -1,5 +1,6 @@
 package com.webkit640.backend.controller;
 
+import com.webkit640.backend.config.annotation.Admin;
 import com.webkit640.backend.dto.BoardDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Board;
@@ -7,15 +8,21 @@ import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.service.logic.BoardService;
 import com.webkit640.backend.service.logic.FileEntityService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.metadata.HttpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = {"Content-Disposition"})
 @RestController
@@ -59,7 +66,7 @@ public class BoardController {
     ) {
         return ResponseEntity.ok().body(
                 ResponseWrapper.addObject(
-                        BoardDto.ListResponseDto.entityToDto(boardService.boardRead(type, title, author)
+                        BoardDto.ListResponseDto.entityToDto(boardService.boardRead(type, title, author,true)
                         ),
                         HttpStatus.OK));
     }
@@ -121,7 +128,51 @@ public class BoardController {
     public ResponseEntity<?> createComment(@AuthenticationPrincipal int id, @RequestBody BoardDto.CommentDto dto, @PathVariable int boardId) {
         Board comment = boardService.createComment(BoardDto.CommentDto.dtoToEntity(dto), boardId, id);
         return ResponseEntity.created(
-                ServletUriComponentsBuilder.fromCurrentRequest().path("{id}").buildAndExpand(comment.getId()
+                ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(comment.getId()
                 ).toUri()).body(ResponseWrapper.addObject(comment,HttpStatus.CREATED));
     }
+
+    @PatchMapping("/{boardId}/{commentId}")
+    public ResponseEntity<?> updateComment(@AuthenticationPrincipal int id, @PathVariable int boardId, @PathVariable int commentId, @RequestBody BoardDto.CommentDto.CommentUpdateDto dto) {
+        boardService.updateComment(dto.getComment(),commentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Admin
+    @PatchMapping("/auth")
+    public ResponseEntity<?> changeViewMode(@AuthenticationPrincipal int id, @RequestBody BoardDto.ListBoardId dto) {
+        boardService.changeViewMode(dto.getBoardId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Admin
+    @GetMapping("/admin")
+    public ResponseEntity<?> adminGetBoardList(@AuthenticationPrincipal int id,
+                                               @RequestParam String type,
+                                               @RequestParam(required = false) String author,
+                                               @RequestParam(required = false) String title
+    ) {
+        return ResponseEntity.ok().body(
+                ResponseWrapper.addObject(
+                        BoardDto.ListResponseDto.entityToDto(boardService.boardRead(type, title, author)
+                        ),
+                        HttpStatus.OK));
+    }
+
+    @GetMapping("/download/{fileId}")
+    public ResponseEntity<?> boardAttachedFileDownload(@AuthenticationPrincipal int id, @PathVariable int fileId) {
+        Map<String, Object> map = fileEntityService.boardAttachedFileDownload(fileId);
+        String name = (String) map.get("fileName");
+        File file = (File) map.get("file");
+        Resource resource = (Resource) map.get("resource");
+
+        String fileName = new String(name.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+fileName+"\";")
+                .header(HttpHeaders.CONTENT_LENGTH,String.valueOf(file.length()))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM.toString())
+                .body(resource);
+    }
+
 }

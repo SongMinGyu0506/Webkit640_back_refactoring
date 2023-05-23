@@ -218,6 +218,25 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
+    public Map<String, Object> boardAttachedFileDownload(int fileId) {
+        Map<String,Object> result = new HashMap<>();
+        Optional<FileEntity> optionalFile = fileEntityRepository.findById(fileId);
+        if (optionalFile.isPresent()) {
+            FileEntity file = optionalFile.get();
+            result.put("resource",resourceLoader.getResource("file:"+file.getFilePath()));
+            try {
+                result.put("file",resourceLoader.getResource("file:"+file.getFilePath()).getFile());
+            } catch (IOException e) {
+                throw new FileServiceException("file.getFilePath().getFile()에 실패하였습니다.");
+            }
+            result.put("fileName",file.getFileName());
+            return result;
+        } else {
+            throw new FileServiceException("해당 file Reference id를 가진 데이터가 없습니다.");
+        }
+    }
+
+    @Override
     public void updateBoardFiles(int boardId, List<MultipartFile> files) {
     }
 }

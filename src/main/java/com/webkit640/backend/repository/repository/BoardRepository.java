@@ -15,4 +15,5 @@ public interface BoardRepository extends JpaRepository<Board,Integer>, JpaSpecif
     List<Board> findAll(Specification<Board> keyword);
     @Transactional
     void deleteById(int id);
+    Board findByBoardTypeAndId(String type,int id);
 }
