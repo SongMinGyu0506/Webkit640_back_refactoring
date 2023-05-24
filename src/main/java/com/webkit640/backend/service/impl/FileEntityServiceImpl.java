@@ -39,6 +39,8 @@ public class FileEntityServiceImpl implements FileEntityService {
     private String fileDir;
     @Value("${mime_type}")
     private ArrayList<String> mimeTypeList;
+    @Value("${imageUploadPath}")
+    private String imageDir;
 
     private final FileEntityRepository fileEntityRepository;
     private final MemberRepository memberRepository;
@@ -157,7 +159,9 @@ public class FileEntityServiceImpl implements FileEntityService {
 
     @Override
     @Transactional
-    public List<FileEntity> saveBoardFile(List<MultipartFile> files, int boardId, int memberId) {
+    public List<FileEntity> saveBoardFile(List<MultipartFile> files, int boardId, int memberId, String type) {
+
+
         File folder = new File(fileDir+"board");
         if (!folder.exists()) {
             folder.mkdir();
@@ -182,7 +186,7 @@ public class FileEntityServiceImpl implements FileEntityService {
 
             FileEntity result = fileEntityRepository.save(FileEntity.builder()
                     .member(memberRepository.findById(memberId))
-                    .fileType("BOARD")
+                    .fileType(type)
                     .filePath(filePath)
                     .fileExtension(fileExtension)
                     .fileName(originalFileName)
@@ -196,14 +200,11 @@ public class FileEntityServiceImpl implements FileEntityService {
                 throw new FileServiceException("파일 업로드 예외 발생");
             }
         });
-        log.info(String.valueOf(boardId));
         Board board1 = boardRepository.findById(boardId);
         if (board1.getFiles() != null) {
             fileEntityRepository.deleteByBoardId(boardId);
         }
         board1.setFiles(resultFileEntity);
-//        board.setFiles(resultFileEntity);
-//        boardRepository.save(board);
         return resultFileEntity;
     }
 
@@ -213,8 +214,30 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
-    public String saveImage(MultipartFile file) {
-        return null;
+    public String saveImage(MultipartFile files, int memberId) {
+        File folder = new File(imageDir+"image");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        String newFileName = RandomStringUtils.randomAlphanumeric(13);
+        String originalFileName = files.getOriginalFilename();
+        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")+1);
+        String filePath = imageDir+"image/"+newFileName+"."+fileExtension;
+
+        FileEntity result = fileEntityRepository.save(FileEntity.builder()
+                .member(memberRepository.findById(memberId))
+                .fileType("IMAGE")
+                .filePath(filePath)
+                .fileExtension(fileExtension)
+                .fileName(originalFileName)
+                .build());
+
+        try {
+            files.transferTo(new File(filePath));
+        } catch (IOException e) {
+            throw new FileServiceException("파일 업로드 예외 발생");
+        }
+        return "/board-image/"+newFileName+"."+fileExtension;
     }
 
     @Override

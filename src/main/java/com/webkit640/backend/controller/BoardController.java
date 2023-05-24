@@ -82,7 +82,7 @@ public class BoardController {
     @PostMapping("")
     public ResponseEntity<?> createBoard(@AuthenticationPrincipal int id, @RequestPart(required = false) List<MultipartFile> files, @RequestPart BoardDto.CreateBoardDto dto) {
         Board board = boardService.createBoard(BoardDto.CreateBoardDto.dtoToEntity(dto),id);
-        List<FileEntity> fileEntities = fileEntityService.saveBoardFile(files, board.getId(), id);
+        List<FileEntity> fileEntities = fileEntityService.saveBoardFile(files, board.getId(), id,"BOARD");
 
         return ResponseEntity.
                 created(ServletUriComponentsBuilder.fromCurrentRequest().
@@ -105,7 +105,7 @@ public class BoardController {
     {
         boardService.checkBoardUser(id,boardId);
         if (files != null) {
-            fileEntityService.saveBoardFile(files, boardId, id);
+            fileEntityService.saveBoardFile(files, boardId, id,"BOARD");
         }
         boardService.boardUpdate(boardId,BoardDto.CreateBoardDto.dtoToEntity(dto));
         return ResponseEntity.noContent().build();
@@ -173,6 +173,11 @@ public class BoardController {
                 .header(HttpHeaders.CONTENT_LENGTH,String.valueOf(file.length()))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM.toString())
                 .body(resource);
+    }
+
+    @PostMapping("/image")
+    public ResponseEntity<?> boardImageUpload(@AuthenticationPrincipal int id, @RequestParam MultipartFile file) {
+        return ResponseEntity.ok().body(ResponseWrapper.addObject(fileEntityService.saveImage(file, id),HttpStatus.OK));
     }
 
 }

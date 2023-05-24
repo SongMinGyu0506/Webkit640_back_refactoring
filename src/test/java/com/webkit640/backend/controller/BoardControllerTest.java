@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webkit640.backend.dto.BoardDto;
 import com.webkit640.backend.entity.Board;
+import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.repository.repository.BoardRepository;
 import com.webkit640.backend.repository.repository.FileEntityRepository;
 import com.webkit640.backend.service.logic.BoardService;
+import com.webkit640.backend.service.logic.FileEntityService;
 import org.apache.tika.metadata.HttpHeaders;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
@@ -20,8 +22,11 @@ import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.util.MimeTypeUtils;
 
 import javax.transaction.Transactional;
+import java.io.File;
+import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +56,8 @@ class BoardControllerTest {
 
     @Autowired
     BoardService boardService;
+    @Autowired
+    FileEntityService fileEntityService;
 
     @Autowired
     FileEntityRepository fileEntityRepository;
@@ -234,6 +241,27 @@ class BoardControllerTest {
                 .andExpect(status().isNoContent()).andDo(print());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/board/1")).andExpect(status().isOk()).andDo(print());
+    }
 
+    @Test
+    @WithAccount("test@test.com")
+    @DisplayName("게시글 작성 중 이미지 업로드 테스트")
+    void imageUploadTest() throws Exception {
+        File imageFile = new File("C:\\Users\\song\\Desktop\\test.png");
+        FileInputStream inputStream = new FileInputStream(imageFile);
+
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "file",       // 파일 이름
+                "image.jpg",       // 원본 파일 이름
+                MimeTypeUtils.IMAGE_JPEG_VALUE,  // 파일 타입
+                inputStream        // 파일 데이터
+        );
+        String image = fileEntityService.saveImage(mockMultipartFile, 1);
+        fileEntityRepository.findAll().forEach(file -> {
+            System.out.println(file.getFileName());
+        });
+        System.out.println(image);
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/board/image").file(mockMultipartFile)).andExpect(status().isOk()).andDo(print());
     }
 }
