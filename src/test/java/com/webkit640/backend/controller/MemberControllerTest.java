@@ -5,7 +5,7 @@ import com.webkit640.backend.dto.request.SignupDtoRequest;
 import com.webkit640.backend.dto.response.AllMemberDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Member;
-import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.repository.repository.MemberRepository;
 import com.webkit640.backend.service.logic.MemberService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -46,17 +46,17 @@ public class Board extends DateAudit {
     private int cnt;
 
     @JsonIgnore
-    @NotNull
+    //@NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writerId")
     private Member member;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parentBoardId")
     private Board board;
 
-    @OneToMany(mappedBy = "board", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Board> boards = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

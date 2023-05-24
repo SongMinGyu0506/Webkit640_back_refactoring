@@ -7,10 +7,12 @@ import com.webkit640.backend.entity.Applicant;
 import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.entity.Member;
-import com.webkit640.backend.repository.FileEntityRepository;
-import com.webkit640.backend.repository.MemberRepository;
+import com.webkit640.backend.repository.repository.BoardRepository;
+import com.webkit640.backend.repository.repository.FileEntityRepository;
+import com.webkit640.backend.repository.repository.MemberRepository;
 import com.webkit640.backend.service.logic.FileEntityService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,16 +39,20 @@ public class FileEntityServiceImpl implements FileEntityService {
     private String fileDir;
     @Value("${mime_type}")
     private ArrayList<String> mimeTypeList;
+    @Value("${imageUploadPath}")
+    private String imageDir;
 
     private final FileEntityRepository fileEntityRepository;
     private final MemberRepository memberRepository;
     private final ResourceLoader resourceLoader;
+    private final BoardRepository boardRepository;
 
     @Autowired
-    public FileEntityServiceImpl(FileEntityRepository fileEntityRepository, MemberRepository memberRepository, ResourceLoader resourceLoader) {
+    public FileEntityServiceImpl(FileEntityRepository fileEntityRepository, MemberRepository memberRepository, ResourceLoader resourceLoader, BoardRepository boardRepository) {
         this.fileEntityRepository = fileEntityRepository;
         this.memberRepository = memberRepository;
         this.resourceLoader = resourceLoader;
+        this.boardRepository = boardRepository;
     }
 
     private String getGenerationName(LocalDate ld) {
@@ -85,16 +92,17 @@ public class FileEntityServiceImpl implements FileEntityService {
         String mimeType = tika.detect(files.getBytes());
         String extension = originalName.substring(originalName.lastIndexOf(".")+1);
         String saveName = applicant.getMember().getEmail() + "_apply."+extension;
+        String saveOriginalName = RandomStringUtils.randomAlphanumeric(13);
         if (mimeTypeList.contains(mimeType)) {
             FileEntity file = FileEntity.builder()
                     .applicant(applicant)
                     .fileExtension(extension)
                     .fileName(saveName)
-                    .filePath(yearFolderName+"/")
+                    .filePath(yearFolderName+"/"+saveOriginalName+"."+extension)
                     .fileType("APPLY")
                     .member(member)
                     .build();
-            files.transferTo(new File(yearFolderName+"/"+saveName));
+            files.transferTo(new File(yearFolderName+"/"+saveOriginalName+"."+extension));
             return fileEntityRepository.save(file);
         } else {
             throw new FileServiceException("Only pdf,hwp,docx");
@@ -109,8 +117,8 @@ public class FileEntityServiceImpl implements FileEntityService {
         }
         try {
             FileEntity file = fileEntityRepository.findByMemberId(memberRepository.findByEmail(email).getId());
-            result.put("resource",resourceLoader.getResource("file:"+file.getFilePath()+file.getFileName()));
-            result.put("file",resourceLoader.getResource("file:"+file.getFilePath()+file.getFileName()).getFile());
+            result.put("resource",resourceLoader.getResource("file:"+file.getFilePath()));
+            result.put("file",resourceLoader.getResource("file:"+file.getFilePath()).getFile());
             result.put("fileName",file.getFileName());
             return result;
         } catch (Exception e) {
@@ -150,8 +158,54 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
-    public FileEntity saveBoardFile(MultipartFile files, Board board, Member member) {
-        return null;
+    @Transactional
+    public List<FileEntity> saveBoardFile(List<MultipartFile> files, int boardId, int memberId, String type) {
+
+
+        File folder = new File(fileDir+"board");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+
+        File yearFolder = new File(fileDir+"board/"+LocalDate.now().getYear());
+        if (!yearFolder.exists()) {
+            yearFolder.mkdir();
+        }
+
+        File boardFolder = new File(yearFolder.getPath()+"/"+boardId);
+        if (!boardFolder.exists()) {
+            boardFolder.mkdir();
+        }
+
+        List<FileEntity> resultFileEntity = new ArrayList<>();
+        files.forEach(file -> {
+            String newFileName = RandomStringUtils.randomAlphanumeric(13);
+            String originalFileName = file.getOriginalFilename();
+            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")+1);
+            String filePath = boardFolder.getPath()+"/"+newFileName+"."+fileExtension;
+
+            FileEntity result = fileEntityRepository.save(FileEntity.builder()
+                    .member(memberRepository.findById(memberId))
+                    .fileType(type)
+                    .filePath(filePath)
+                    .fileExtension(fileExtension)
+                    .fileName(originalFileName)
+                    .board(boardRepository.findById(boardId))
+                    .build());
+            resultFileEntity.add(result);
+
+            try {
+                file.transferTo(new File(boardFolder.getPath() + "/" + newFileName + "." + fileExtension));
+            } catch (IOException e) {
+                throw new FileServiceException("파일 업로드 예외 발생");
+            }
+        });
+        Board board1 = boardRepository.findById(boardId);
+        if (board1.getFiles() != null) {
+            fileEntityRepository.deleteByBoardId(boardId);
+        }
+        board1.setFiles(resultFileEntity);
+        return resultFileEntity;
     }
 
     @Override
@@ -160,7 +214,52 @@ public class FileEntityServiceImpl implements FileEntityService {
     }
 
     @Override
-    public String saveImage(MultipartFile file) {
-        return null;
+    public String saveImage(MultipartFile files, int memberId) {
+        File folder = new File(imageDir+"image");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        String newFileName = RandomStringUtils.randomAlphanumeric(13);
+        String originalFileName = files.getOriginalFilename();
+        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")+1);
+        String filePath = imageDir+"image/"+newFileName+"."+fileExtension;
+
+        FileEntity result = fileEntityRepository.save(FileEntity.builder()
+                .member(memberRepository.findById(memberId))
+                .fileType("IMAGE")
+                .filePath(filePath)
+                .fileExtension(fileExtension)
+                .fileName(originalFileName)
+                .build());
+
+        try {
+            files.transferTo(new File(filePath));
+        } catch (IOException e) {
+            throw new FileServiceException("파일 업로드 예외 발생");
+        }
+        return "/board-image/"+newFileName+"."+fileExtension;
+    }
+
+    @Override
+    public Map<String, Object> boardAttachedFileDownload(int fileId) {
+        Map<String,Object> result = new HashMap<>();
+        Optional<FileEntity> optionalFile = fileEntityRepository.findById(fileId);
+        if (optionalFile.isPresent()) {
+            FileEntity file = optionalFile.get();
+            result.put("resource",resourceLoader.getResource("file:"+file.getFilePath()));
+            try {
+                result.put("file",resourceLoader.getResource("file:"+file.getFilePath()).getFile());
+            } catch (IOException e) {
+                throw new FileServiceException("file.getFilePath().getFile()에 실패하였습니다.");
+            }
+            result.put("fileName",file.getFileName());
+            return result;
+        } else {
+            throw new FileServiceException("해당 file Reference id를 가진 데이터가 없습니다.");
+        }
+    }
+
+    @Override
+    public void updateBoardFiles(int boardId, List<MultipartFile> files) {
     }
 }
