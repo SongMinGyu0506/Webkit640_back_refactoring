@@ -1,6 +1,7 @@
 package com.webkit640.backend.service.impl;
 
 import com.webkit640.backend.config.exception.*;
+import com.webkit640.backend.config.security.PasswordEncryptConfig;
 import com.webkit640.backend.config.security.TokenProvider;
 import com.webkit640.backend.entity.Member;
 import com.webkit640.backend.repository.repository.MemberRepository;
@@ -21,19 +22,23 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;
     private final OAuthLoginService oAuthLoginService;
+    private final PasswordEncryptConfig passwordEncryptConfig;
 
     @Autowired
     public MemberServiceImpl(MemberRepository memberRepository,
                              TokenProvider tokenProvider,
-                             @Qualifier("OAuthLoginServiceKakao") OAuthLoginService oAuthLoginService) {
+                             @Qualifier("OAuthLoginServiceKakao") OAuthLoginService oAuthLoginService, PasswordEncryptConfig passwordEncryptConfig) {
         this.memberRepository = memberRepository;
         this.tokenProvider = tokenProvider;
         this.oAuthLoginService = oAuthLoginService;
+        this.passwordEncryptConfig = passwordEncryptConfig;
     }
 
     @Override
     public Member create(Member member) {
         if (!memberRepository.existsMemberByEmail(member.getEmail())) {
+            String password = member.getPassword();
+            member.setPassword(passwordEncryptConfig.makeMD5(password));
             return memberRepository.save(member);
         }
         throw new AlreadyExistsException(String.format("[%s] is already used email",member.getEmail()));
@@ -46,7 +51,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public HashMap<String,Object> getByCredentials(String email, String password) {
-        Member member =  memberRepository.findByEmailAndPassword(email,password);
+        Member member =  memberRepository.findByEmailAndPassword(email,passwordEncryptConfig.makeMD5(password));
         HashMap<String,Object> returnData = new HashMap<>();
         if (member != null) {
             returnData.put("token",tokenProvider.create(member));
