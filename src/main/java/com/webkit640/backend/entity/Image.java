@@ -27,12 +27,10 @@ public class Image extends DateAudit {
     private String title;
 
     @JsonIgnore
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writerId")
     private Member member;
 
-    @NotNull
     private String imagePath;
 
 }
