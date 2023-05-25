@@ -18,7 +18,7 @@ public class Calendar {
     @Column
     private String title;
     @Column
-    private String startdate;
+    private String startDate;
     @Column
-    private String enddate;
+    private String endDate;
 }
