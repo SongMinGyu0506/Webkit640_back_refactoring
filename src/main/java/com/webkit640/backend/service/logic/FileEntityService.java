@@ -22,4 +22,6 @@ public interface FileEntityService {
     String saveImage(MultipartFile files, int memberId);
     Map<String,Object> boardAttachedFileDownload(int fileId);
     void updateBoardFiles(int boardId, List<MultipartFile> files);
+
+    void fileDelete(String fileName);
 }

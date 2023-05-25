@@ -237,7 +237,7 @@ public class FileEntityServiceImpl implements FileEntityService {
         } catch (IOException e) {
             throw new FileServiceException("파일 업로드 예외 발생");
         }
-        return "/board-image/"+newFileName+"."+fileExtension;
+        return "/board-image/image/"+newFileName+"."+fileExtension;
     }
 
     @Override
@@ -261,5 +261,15 @@ public class FileEntityServiceImpl implements FileEntityService {
 
     @Override
     public void updateBoardFiles(int boardId, List<MultipartFile> files) {
+    }
+
+    @Override
+    public void fileDelete(String fileName) {
+        File file = new File(fileEntityRepository.findByFilePathContains(fileName).getFilePath());
+        if (file.exists()) {
+            file.delete();
+        } else {
+            throw new NotFoundDataException("해당 파일을 찾을 수 없습니다.");
+        }
     }
 }
