@@ -3,7 +3,9 @@ package com.webkit640.backend.controller;
 import com.webkit640.backend.config.annotation.Admin;
 import com.webkit640.backend.dto.MainPageDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
+import com.webkit640.backend.entity.MainPageEntity;
 import com.webkit640.backend.service.logic.MainPageService;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ public class MainPageController {
     }
 
     @GetMapping("")
+    @ApiOperation(value = "Get main page content",response = MainPageEntity.class)
     public ResponseEntity<?> getMainPage() {
         return ResponseEntity.ok().body(
                 ResponseWrapper.addObject(mainPageService.read(), HttpStatus.OK)
@@ -32,6 +35,7 @@ public class MainPageController {
     }
     @Admin
     @PostMapping("")
+    @ApiOperation(value = "Add/Modify main page content",response = MainPageEntity.class)
     public ResponseEntity<?> addMainPage(@AuthenticationPrincipal int id, @RequestBody MainPageDto dto) {
         return ResponseEntity.ok().body(
                 ResponseWrapper.addObject(mainPageService.create(MainPageDto.toEntity(dto)), HttpStatus.OK)
@@ -39,6 +43,7 @@ public class MainPageController {
     }
     @Admin
     @PatchMapping("/admin-change")
+    @ApiOperation(value = "Modify user level")
     public ResponseEntity<?> updateMainPage(@AuthenticationPrincipal int id, @RequestParam int memberId) {
         mainPageService.adminModification(memberId);
         return ResponseEntity.noContent().build();

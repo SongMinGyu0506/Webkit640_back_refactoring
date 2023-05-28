@@ -13,6 +13,7 @@ import org.springframework.web.context.request.WebRequest;
 public class GlobalExceptionalHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> exceptionHandle(Exception ex, WebRequest request) {
+        ex.printStackTrace();
         return new ResponseEntity<>(ExceptionWrapper.makeResponse(ex,request,HttpStatus.INTERNAL_SERVER_ERROR),HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @ExceptionHandler(AlreadyExistsException.class)

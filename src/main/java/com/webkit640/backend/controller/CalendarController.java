@@ -5,6 +5,7 @@ import com.webkit640.backend.dto.CalendarDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Calendar;
 import com.webkit640.backend.service.logic.CalendarService;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class CalendarController {
 
     @Admin
     @PostMapping("")
+    @ApiOperation(value = "schedule creation controller", response = CalendarDto.class, notes = "<h2>That controller is the one that adds the schedule.</h2>")
     public ResponseEntity<?> createCalendar(@AuthenticationPrincipal int id, @RequestBody CalendarDto dto) {
         Calendar calendar = calendarService.createCalendar(CalendarDto.toEntity(dto));
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(calendar.getId()).toUri())
@@ -34,12 +36,14 @@ public class CalendarController {
     }
 
     @GetMapping("")
+    @ApiOperation(value = "get calendars controller", response = CalendarDto.class, notes = "<h2>That controller is the one that gets the calendars.</h2>")
     public ResponseEntity<?> getCalendars(@AuthenticationPrincipal int id) {
         return ResponseEntity.ok(ResponseWrapper.addObject(calendarService.readCalendars(), HttpStatus.OK));
     }
 
     @Admin
     @DeleteMapping("/{idCalendar}")
+    @ApiOperation(value = "schedule deletion controller", response = CalendarDto.class, notes = "<h2>That controller is the one that deletes the schedule.</h2>")
     public ResponseEntity<?> deleteCalendar(@AuthenticationPrincipal int id, @PathVariable int idCalendar) {
         calendarService.deleteCalendar(idCalendar);
         return ResponseEntity.noContent().build();

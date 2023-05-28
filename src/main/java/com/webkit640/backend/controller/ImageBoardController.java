@@ -6,6 +6,8 @@ import com.webkit640.backend.dto.ImageBoardDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Image;
 import com.webkit640.backend.service.logic.ImageBoardService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,8 +29,9 @@ public class ImageBoardController {
         this.imageBoardService = imageBoardService;
     }
 
-    @Admin
+
     @GetMapping("")
+    @ApiOperation(value = "Get image board list", notes = "<h2>Get image board list</h2>",response = ImageBoardDto.SaveImageDto.class)
     public ResponseEntity<?> getImageBoardList(@AuthenticationPrincipal int id,
                                                @RequestParam(required = false) String title,
                                                @RequestParam(required = false) String name) {
@@ -38,8 +41,8 @@ public class ImageBoardController {
                 , HttpStatus.OK));
     }
 
-    @Admin
     @GetMapping("/{imageId}")
+    @ApiOperation(value = "Get image board", notes = "<h2>Get image board</h2>",response = ImageBoardDto.SaveImageDto.class)
     public ResponseEntity<?> getImageBoard(@AuthenticationPrincipal int id, @PathVariable int imageId) {
 
         return ResponseEntity.ok().body(ResponseWrapper.addObject(
@@ -49,6 +52,7 @@ public class ImageBoardController {
 
     @Admin
     @PostMapping("")
+    @ApiOperation(value = "Add image board", notes = "<h2>Add image board</h2>",response = ImageBoardDto.SaveImageDto.class)
     public ResponseEntity<?> addImageBoard(@AuthenticationPrincipal int id, @RequestPart ImageBoardDto.SaveImageDto dto, @RequestPart MultipartFile image) {
         Image board = imageBoardService.saveImageBoard(image, ImageBoardDto.SaveImageDto.toEntity(dto), id);
 
@@ -59,6 +63,7 @@ public class ImageBoardController {
 
     @Admin
     @DeleteMapping("/{imageId}")
+    @ApiOperation(value = "Delete image board", notes = "<h2>Delete image board</h2>")
     public ResponseEntity<?> deleteImageBoard(@AuthenticationPrincipal int id, @PathVariable int imageId) {
         imageBoardService.deleteImageBoard(imageId);
         return ResponseEntity.noContent().build();

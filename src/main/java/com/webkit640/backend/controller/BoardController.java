@@ -7,6 +7,8 @@ import com.webkit640.backend.entity.Board;
 import com.webkit640.backend.entity.FileEntity;
 import com.webkit640.backend.service.logic.BoardService;
 import com.webkit640.backend.service.logic.FileEntityService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.metadata.HttpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,8 @@ public class BoardController {
      * HTTP STATUS: 200
      */
     @GetMapping("/{boardId}")
+    @ApiOperation(value = "게시글 상세 컨트롤러", response = BoardDto.ListResponseDto.class,
+    notes = "<h2>게시글 내용을 확인할 수 있습니다.</h2>")
     public ResponseEntity<?> getBoard(@AuthenticationPrincipal int id, @PathVariable int boardId) {
         return ResponseEntity.ok().body(ResponseWrapper.addObject(BoardDto.ListResponseDto.entityToDto(boardService.boardRead(boardId)),HttpStatus.OK));
     }
@@ -59,6 +63,8 @@ public class BoardController {
      * HTTP STATUS: 200
      */
     @GetMapping("")
+    @ApiOperation(value = "게시글 목록 컨트롤러", response = BoardDto.ListResponseDto.class,
+    notes = "<h2>게시글 목록 및 검색을 수행 할 수 있습니다.</h2>")
     public ResponseEntity<?> getListBoard(@AuthenticationPrincipal int id,
                                           @RequestParam String type,
                                           @RequestParam(required = false) String author,
@@ -80,6 +86,8 @@ public class BoardController {
      * HTTP STATUS: 201
      */
     @PostMapping("")
+    @ApiOperation(value = "게시글 생성 컨트롤러", response = BoardDto.createBoardResponseDto.class,
+    notes = "<h2>게시글을 생성 할 수 있습니다.</h2>")
     public ResponseEntity<?> createBoard(@AuthenticationPrincipal int id, @RequestPart(required = false) List<MultipartFile> files, @RequestPart BoardDto.CreateBoardDto dto) {
         Board board = boardService.createBoard(BoardDto.CreateBoardDto.dtoToEntity(dto),id);
         List<FileEntity> fileEntities = fileEntityService.saveBoardFile(files, board.getId(), id,"BOARD");
@@ -98,6 +106,7 @@ public class BoardController {
      * @return 204 NO CONTENT로 반환
      */
     @PatchMapping("/{boardId}")
+    @ApiOperation(value = "게시글 수정 컨트롤러",notes = "<h2>게시글을 수정할 수 있습니다.</h2>")
     public ResponseEntity<?> updateBoard(@AuthenticationPrincipal int id,
                                          @PathVariable int boardId,
                                          @RequestPart(required = false) List<MultipartFile> files,
@@ -118,6 +127,7 @@ public class BoardController {
      * @return 204 NO CONTENT로 반환
      */
     @DeleteMapping("/{boardId}")
+    @ApiOperation(value = "게시글 삭제 컨트롤러",notes = "<h2>게시글을 삭제할 수 있습니다.</h2>")
     public ResponseEntity<?> deleteBoard(@AuthenticationPrincipal int id, @PathVariable int boardId) {
         boardService.checkBoardUser(id,boardId);
         boardService.boardDelete(boardId);
@@ -125,6 +135,7 @@ public class BoardController {
     }
 
     @PostMapping("/{boardId}")
+    @ApiOperation(value = "댓글 등록 컨트롤러",notes = "<h2>게시글에 댓글을 등록 할 수 있습니다.</h2>")
     public ResponseEntity<?> createComment(@AuthenticationPrincipal int id, @RequestBody BoardDto.CommentDto dto, @PathVariable int boardId) {
         Board comment = boardService.createComment(BoardDto.CommentDto.dtoToEntity(dto), boardId, id);
         return ResponseEntity.created(
@@ -133,6 +144,7 @@ public class BoardController {
     }
 
     @PatchMapping("/{boardId}/{commentId}")
+    @ApiOperation(value = "댓글 수정 컨트롤러",notes = "<h2>작성한 댓글을 수정할 수 있습니다.</h2>")
     public ResponseEntity<?> updateComment(@AuthenticationPrincipal int id, @PathVariable int boardId, @PathVariable int commentId, @RequestBody BoardDto.CommentDto.CommentUpdateDto dto) {
         boardService.updateComment(dto.getComment(),commentId);
         return ResponseEntity.noContent().build();
@@ -140,6 +152,7 @@ public class BoardController {
 
     @Admin
     @PatchMapping("/auth")
+    @ApiOperation(value = "게시글 숨김여부 컨트롤러",notes = "<h2>관리자가 게시글 숨김여부를 결정할 수 있습니다.</h2>")
     public ResponseEntity<?> changeViewMode(@AuthenticationPrincipal int id, @RequestBody BoardDto.ListBoardId dto) {
         boardService.changeViewMode(dto.getBoardId());
         return ResponseEntity.noContent().build();
@@ -147,6 +160,8 @@ public class BoardController {
 
     @Admin
     @GetMapping("/admin")
+    @ApiOperation(value = "관리자 전용 게시글 목록 컨트롤러", response = BoardDto.ListResponseDto.class,
+    notes = "<h2>관리자 계정으로 숨김처리까지 되어있는 게시글을 볼 수 있습니다.</h2>")
     public ResponseEntity<?> adminGetBoardList(@AuthenticationPrincipal int id,
                                                @RequestParam String type,
                                                @RequestParam(required = false) String author,
@@ -160,6 +175,7 @@ public class BoardController {
     }
 
     @GetMapping("/download/{fileId}")
+    @ApiOperation(value = "첨부파일 다운로드 컨트롤러",notes = "<h2>게시글에 첨부된 파일을 다운로드 할 수 있습니다.</h2>")
     public ResponseEntity<?> boardAttachedFileDownload(@AuthenticationPrincipal int id, @PathVariable int fileId) {
         Map<String, Object> map = fileEntityService.boardAttachedFileDownload(fileId);
         String name = (String) map.get("fileName");
@@ -176,6 +192,7 @@ public class BoardController {
     }
 
     @PostMapping("/image")
+    @ApiOperation(value = "게시글 작성 중 이미지 추가 컨트롤러",notes = "<h2>게시글 작성 중 이미지를 추가하는 기능을 수행합니다.</h2>")
     public ResponseEntity<?> boardImageUpload(@AuthenticationPrincipal int id, @RequestParam MultipartFile file) {
         return ResponseEntity.ok().body(ResponseWrapper.addObject(fileEntityService.saveImage(file, id),HttpStatus.OK));
     }

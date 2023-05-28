@@ -47,7 +47,7 @@ public class SecurityConfig {
                         ,"/board/list-review",
                         "/board/list-review/**",
                         "/board/list-image/",
-                        "/board/list-image/**").permitAll()
+                        "/board/list-image/**","/swagger-ui.html/**").permitAll()
                 .anyRequest()
                 .authenticated();
         http.exceptionHandling()

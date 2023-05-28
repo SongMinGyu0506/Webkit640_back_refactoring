@@ -6,6 +6,7 @@ import com.webkit640.backend.dto.TraineeDto;
 import com.webkit640.backend.dto.response.ResponseWrapper;
 import com.webkit640.backend.entity.Trainee;
 import com.webkit640.backend.service.logic.TraineeService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class TraineeController {
     }
 
     @PostMapping("")
+    @ApiOperation(value = "Add trainee", notes = "<h2>Add trainee</h2>")
     public ResponseEntity<?> addTrainee(@AuthenticationPrincipal int id) {
         Trainee trainee = traineeService.saveTrainee(id);
         return ResponseEntity.created(
@@ -40,6 +42,7 @@ public class TraineeController {
     }
     @Admin
     @GetMapping("")
+    @ApiOperation(value = "Search trainee", notes = "<h2>Search trainee</h2>")
     public ResponseEntity<?> searchTrainee(
             @AuthenticationPrincipal int id,
             @RequestParam(required = false) String cardinal,

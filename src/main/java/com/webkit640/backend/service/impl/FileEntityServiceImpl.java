@@ -222,6 +222,10 @@ public class FileEntityServiceImpl implements FileEntityService {
         String newFileName = RandomStringUtils.randomAlphanumeric(13);
         String originalFileName = files.getOriginalFilename();
         String fileExtension = originalFileName.substring(originalFileName.lastIndexOf(".")+1);
+        File imageFolder = new File(imageDir+"image");
+        if (!imageFolder.exists()) {
+            imageFolder.mkdir();
+        }
         String filePath = imageDir+"image/"+newFileName+"."+fileExtension;
 
         FileEntity result = fileEntityRepository.save(FileEntity.builder()
@@ -235,7 +239,8 @@ public class FileEntityServiceImpl implements FileEntityService {
         try {
             files.transferTo(new File(filePath));
         } catch (IOException e) {
-            throw new FileServiceException("파일 업로드 예외 발생");
+            e.printStackTrace();
+            //throw new FileServiceException("파일 업로드 예외 발생");
         }
         return "/board-image/image/"+newFileName+"."+fileExtension;
     }
